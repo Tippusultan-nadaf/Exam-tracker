@@ -1,7 +1,7 @@
 const CACHE_NAME = 'ssc-cgl-v1';
 const ASSETS = [
   './',
-  './index.html',
+  './ssc_cgl_hub.html',
   './manifest.json',
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
@@ -32,7 +32,7 @@ self.addEventListener('fetch', e => {
         caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         return response;
       }).catch(() => {
-        if (e.request.destination === 'document') return caches.match('./index.html');
+        if (e.request.destination === 'document') return caches.match('./ssc_cgl_hub.html');
       });
     })
   );
