@@ -1,2 +1,2 @@
 # Exam-tracker
-Answer application to track to progress of an individual 
+It helps the Students and the Aspirants to track their progress in stuides.
