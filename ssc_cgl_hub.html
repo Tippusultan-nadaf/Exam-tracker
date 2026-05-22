@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#070714" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SSC CGL Hub" />
+<title>SSC CGL Prep Hub</title>
+
+<!-- PWA Manifest inline -->
+<script>
+const manifestData = {
+  name: "SSC CGL Prep Hub",
+  short_name: "SSC CGL",
+  description: "SSC CGL Tier 1 + Tier 2 Study Tracker & Guide",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#070714",
+  theme_color: "#4361ee",
+  orientation: "portrait-primary",
+  icons: [
+    { src: "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="32" fill="#070714"/><text x="96" y="130" text-anchor="middle" font-size="110" font-family="serif">📚</text></svg>'), sizes: "192x192", type: "image/svg+xml" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type:'application/manifest+json'});
+const manifestURL = URL.createObjectURL(blob);
+document.addEventListener('DOMContentLoaded', () => {
+  const link = document.createElement('link');
+  link.rel = 'manifest'; link.href = manifestURL;
+  document.head.appendChild(link);
+});
+</script>
+
+<!-- Service Worker for offline -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swCode = `
+const CACHE_NAME = 'ssc-cgl-v1';
+self.addEventListener('install', e => { self.skipWaiting(); });
+self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
+self.addEventListener('fetch', e => { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });
+    `;
+    const swBlob = new Blob([swCode], {type:'application/javascript'});
+    const swURL = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL).catch(() => {});
+  });
+}
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; -webkit-tap-highlight-color: transparent; }
+  body { background: #070714; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; overflow-x: hidden; }
+  button { cursor: pointer; font-family: inherit; }
+  ::-webkit-scrollbar { display: none; }
+  scrollbar-width: none;
+</style>
+
+<!-- React + Babel via CDN -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+// ══════════════════════════════════════════════════════════════
+//  EXAM DATA
+// ══════════════════════════════════════════════════════════════
+const GUIDE = {
+  tier1: {
+    sections: [
+      {
+        name: "General Intelligence & Reasoning", color: "#e63946", questions: 25, marks: 50,
+        weightage: [
+          { topic: "Analogies (Verbal & Non-Verbal)", freq: 5, importance: "Very High" },
+          { topic: "Series (Number/Letter/Figure)", freq: 4, importance: "Very High" },
+          { topic: "Coding-Decoding", freq: 3, importance: "High" },
+          { topic: "Blood Relations", freq: 2, importance: "High" },
+          { topic: "Direction & Distance", freq: 2, importance: "High" },
+          { topic: "Syllogism", freq: 2, importance: "High" },
+          { topic: "Matrix / Odd One Out", freq: 2, importance: "Medium" },
+          { topic: "Venn Diagrams", freq: 1, importance: "Medium" },
+          { topic: "Paper Folding / Cutting", freq: 1, importance: "Medium" },
+          { topic: "Mirror / Water Image", freq: 1, importance: "Medium" },
+          { topic: "Embedded Figures", freq: 1, importance: "Medium" },
+          { topic: "Miscellaneous", freq: 1, importance: "Low" },
+        ],
+        strategy: [
+          "Analogies and Series together = ~35% of this section — master these first",
+          "Coding-Decoding: learn all patterns (letter shift, symbol substitution, number-letter mix)",
+          "Blood Relations + Direction: formula-based, can be solved in under 30 seconds each",
+          "Non-verbal (Paper folding, Mirror image): practice 50+ problems for speed",
+          "Target 22–23 out of 25 correct — this is the most scorable section in Tier 1",
+          "Avoid spending more than 40 seconds on any single question",
+        ],
+      },
+      {
+        name: "General Awareness", color: "#2a9d8f", questions: 25, marks: 50,
+        weightage: [
+          { topic: "Static GK (History, Polity, Geography)", freq: 8, importance: "Very High" },
+          { topic: "Current Affairs (last 6 months)", freq: 5, importance: "Very High" },
+          { topic: "Biology (Human body, diseases)", freq: 3, importance: "High" },
+          { topic: "Physics (basic laws & concepts)", freq: 2, importance: "High" },
+          { topic: "Chemistry (everyday chemistry)", freq: 2, importance: "High" },
+          { topic: "Computer & Technology", freq: 2, importance: "Medium" },
+          { topic: "Sports (recent + historic)", freq: 1, importance: "Medium" },
+          { topic: "Books & Authors", freq: 1, importance: "Medium" },
+          { topic: "Awards & Honours", freq: 1, importance: "Low" },
+        ],
+        strategy: [
+          "Static GK dominates — focus on NCERT 6–10 History, Geography, Civics",
+          "Current Affairs: revise last 6 months — monthly magazines like Pratiyogita Darpan help",
+          "Science: Biology > Chemistry > Physics in terms of frequency",
+          "Never skip: National Parks, Dams, Rivers, Constitutional Articles, 5-Year Plans",
+          "Target 16–18 out of 25",
+          "Read newspapers 30 min daily (The Hindu or Indian Express)",
+        ],
+      },
+      {
+        name: "Quantitative Aptitude", color: "#e9c46a", questions: 25, marks: 50,
+        weightage: [
+          { topic: "Algebra (Identities, Equations)", freq: 4, importance: "Very High" },
+          { topic: "Geometry (Triangle, Circle, Polygon)", freq: 4, importance: "Very High" },
+          { topic: "Trigonometry (Ratios, Heights & Distances)", freq: 3, importance: "Very High" },
+          { topic: "Profit, Loss & Discount", freq: 2, importance: "High" },
+          { topic: "Time, Speed & Distance", freq: 2, importance: "High" },
+          { topic: "Time & Work / Pipes & Cisterns", freq: 2, importance: "High" },
+          { topic: "Percentages, Ratio & Proportion", freq: 2, importance: "High" },
+          { topic: "Average, Mixture & Alligation", freq: 2, importance: "High" },
+          { topic: "Number System & HCF/LCM", freq: 1, importance: "Medium" },
+          { topic: "Simple & Compound Interest", freq: 1, importance: "Medium" },
+          { topic: "Mensuration (2D & 3D)", freq: 1, importance: "Medium" },
+          { topic: "Data Interpretation", freq: 1, importance: "Medium" },
+        ],
+        strategy: [
+          "Algebra + Geometry + Trigonometry = ~44% of this section. Prioritise heavily.",
+          "Learn all standard algebraic identities by heart — direct substitution saves time",
+          "Geometry: Triangle properties (centres, similarity, congruence) appear every year",
+          "Trigonometry: standard angles and complementary angle formulas are must-know",
+          "Arithmetic topics (P&L, TSD, TW) are straightforward — aim for 100% accuracy",
+          "Target 18–20 out of 25",
+        ],
+      },
+      {
+        name: "English Comprehension", color: "#457b9d", questions: 25, marks: 50,
+        weightage: [
+          { topic: "Error Spotting / Sentence Correction", freq: 4, importance: "Very High" },
+          { topic: "Fill in the Blanks", freq: 3, importance: "Very High" },
+          { topic: "Synonyms & Antonyms", freq: 3, importance: "Very High" },
+          { topic: "Idioms & Phrases", freq: 3, importance: "Very High" },
+          { topic: "One Word Substitution", freq: 2, importance: "High" },
+          { topic: "Reading Comprehension", freq: 2, importance: "High" },
+          { topic: "Cloze Test", freq: 2, importance: "High" },
+          { topic: "Active / Passive Voice", freq: 2, importance: "High" },
+          { topic: "Direct / Indirect Speech", freq: 2, importance: "High" },
+          { topic: "Spelling Correction", freq: 1, importance: "Medium" },
+          { topic: "Para-jumble", freq: 1, importance: "Medium" },
+        ],
+        strategy: [
+          "Vocabulary (Synonyms, Antonyms, Idioms, OWS) = ~52% of English — revise word lists daily",
+          "Grammar rules: subject-verb agreement, tenses, prepositions, articles are most tested",
+          "RC: 2 passages usually — 1 easy, 1 moderate. Attempt easy one first",
+          "Cloze Test: context-based — improving reading speed helps directly",
+          "Active/Passive + Direct/Indirect: rule-based, can be mastered in 2–3 days",
+          "Target 20–22 out of 25",
+        ],
+      },
+    ],
+  },
+  tier2: {
+    papers: [
+      {
+        name: "Mathematical Abilities", color: "#e63946", questions: 30, marks: 90,
+        weightage: [
+          { topic: "Algebra", freq: 6, importance: "Very High" },
+          { topic: "Geometry (Triangle + Circle)", freq: 6, importance: "Very High" },
+          { topic: "Trigonometry", freq: 5, importance: "Very High" },
+          { topic: "Mensuration (2D & 3D)", freq: 3, importance: "High" },
+          { topic: "Data Interpretation", freq: 3, importance: "High" },
+          { topic: "Arithmetic (P&L, TSD, TW, CI/SI)", freq: 4, importance: "High" },
+          { topic: "Number System", freq: 2, importance: "Medium" },
+          { topic: "Coordinate Geometry", freq: 1, importance: "Medium" },
+        ],
+        strategy: [
+          "Tier 2 Math is significantly harder than Tier 1 — expect multi-step problems",
+          "Algebra: Practice factoring, surds, polynomial equations",
+          "Geometry: Learn all theorems (BPT, Pythagoras, Tangent-Secant, etc.)",
+          "Mensuration: Both 2D and 3D are tested — all formulas must be memorised",
+          "DI: Expect tables, line graphs, bar charts — aim to attempt all DI questions",
+          "-1 mark negative — be more selective than Tier 1",
+        ],
+      },
+      {
+        name: "Reasoning & General Intelligence", color: "#6a4c93", questions: 30, marks: 90,
+        weightage: [
+          { topic: "Analogies & Classification", freq: 6, importance: "Very High" },
+          { topic: "Series (Number/Letter/Matrix)", freq: 5, importance: "Very High" },
+          { topic: "Coding-Decoding", freq: 4, importance: "High" },
+          { topic: "Venn Diagram / Syllogism", freq: 4, importance: "High" },
+          { topic: "Pattern Completion / Folding", freq: 3, importance: "High" },
+          { topic: "Critical Thinking / Statements", freq: 3, importance: "Medium" },
+          { topic: "Emotional & Social Intelligence", freq: 3, importance: "Medium" },
+          { topic: "Spatial / Figure problems", freq: 2, importance: "Medium" },
+        ],
+        strategy: [
+          "Tier 2 Reasoning introduces Critical Thinking and Emotional Intelligence — new vs Tier 1",
+          "Matrix and complex Coding-Decoding appear here — practice advanced level",
+          "Aim for speed: 2 min per question average",
+          "Social & Emotional Intelligence: situational questions — use common sense + ethics",
+        ],
+      },
+      {
+        name: "English Language & Comprehension", color: "#457b9d", questions: 45, marks: 135,
+        weightage: [
+          { topic: "Reading Comprehension (3–4 passages)", freq: 10, importance: "Very High" },
+          { topic: "Error Spotting / Sentence Correction", freq: 7, importance: "Very High" },
+          { topic: "Synonyms & Antonyms", freq: 5, importance: "Very High" },
+          { topic: "Idioms & Phrases", freq: 5, importance: "Very High" },
+          { topic: "One Word Substitution", freq: 4, importance: "High" },
+          { topic: "Fill in the Blanks / Cloze Test", freq: 5, importance: "High" },
+          { topic: "Active/Passive, Direct/Indirect", freq: 4, importance: "High" },
+          { topic: "Para-jumble", freq: 3, importance: "Medium" },
+          { topic: "Spelling Correction", freq: 2, importance: "Medium" },
+        ],
+        strategy: [
+          "English carries the most marks (135) in Paper I — do NOT neglect it",
+          "RC passages are longer and more complex in Tier 2 — practice CAT-level passages",
+          "Vocabulary is king: Synonyms + Antonyms + Idioms + OWS = ~52% of English",
+          "Grammar: Spotting Errors tests articles, prepositions, tenses, subject-verb agreement most",
+          "Aim to finish English in 50–55 minutes out of 150",
+        ],
+      },
+      {
+        name: "General Awareness", color: "#2a9d8f", questions: 25, marks: 75,
+        weightage: [
+          { topic: "Static GK (History, Polity, Geo)", freq: 9, importance: "Very High" },
+          { topic: "Current Affairs", freq: 5, importance: "Very High" },
+          { topic: "Science (Bio, Chem, Physics)", freq: 6, importance: "High" },
+          { topic: "Economy & Finance basics", freq: 3, importance: "High" },
+          { topic: "Awards, Sports, Books", freq: 2, importance: "Medium" },
+        ],
+        strategy: [
+          "Same preparation as Tier 1 GA but questions are slightly deeper",
+          "Focus on Economy basics (Budget terms, RBI, GDP, Inflation) — Tier 2 specific",
+          "Polity: Articles, Schedules, Constitutional bodies appear frequently",
+        ],
+      },
+      {
+        name: "Computer Knowledge", color: "#f4a261", questions: 20, marks: 60,
+        weightage: [
+          { topic: "MS Office (Word, Excel, PowerPoint)", freq: 7, importance: "Very High" },
+          { topic: "Internet & Networking basics", freq: 5, importance: "High" },
+          { topic: "Computer Fundamentals (CPU, memory, I/O)", freq: 4, importance: "High" },
+          { topic: "Operating System (Windows)", freq: 2, importance: "Medium" },
+          { topic: "Cyber Security basics", freq: 2, importance: "Medium" },
+        ],
+        strategy: [
+          "Computer Knowledge is the easiest section — aim for 18–20/20",
+          "MS Office shortcuts and functions are asked every year",
+          "Networking: know OSI model, IP addressing basics, LAN/WAN/MAN",
+          "Prepare in 1 week — highest ROI section",
+        ],
+      },
+    ],
+  },
+  formulas: [
+    {
+      subject: "Arithmetic", color: "#e63946",
+      items: [
+        { name: "Profit %", formula: "(SP - CP) / CP × 100" },
+        { name: "Loss %", formula: "(CP - SP) / CP × 100" },
+        { name: "Discount %", formula: "Discount / MP × 100" },
+        { name: "SP after discount", formula: "MP × (1 - D/100)" },
+        { name: "Simple Interest", formula: "SI = P × R × T / 100" },
+        { name: "Compound Interest", formula: "CI = P(1 + R/100)ⁿ - P" },
+        { name: "Amount (CI)", formula: "A = P(1 + R/100)ⁿ" },
+        { name: "Time & Work", formula: "1/A + 1/B = 1/Total Days" },
+        { name: "Speed = Distance/Time", formula: "D = S × T" },
+        { name: "Relative Speed (same dir)", formula: "S₁ - S₂" },
+        { name: "Relative Speed (opp dir)", formula: "S₁ + S₂" },
+        { name: "Average", formula: "Sum of terms / Number of terms" },
+        { name: "Alligation rule", formula: "(d-m) : (m-c) where m = mean price" },
+        { name: "Partnership ratio", formula: "Profit ∝ Capital × Time" },
+      ],
+    },
+    {
+      subject: "Algebra", color: "#6a4c93",
+      items: [
+        { name: "(a+b)²", formula: "a² + 2ab + b²" },
+        { name: "(a-b)²", formula: "a² - 2ab + b²" },
+        { name: "(a+b)(a-b)", formula: "a² - b²" },
+        { name: "(a+b)³", formula: "a³ + 3a²b + 3ab² + b³" },
+        { name: "(a-b)³", formula: "a³ - 3a²b + 3ab² - b³" },
+        { name: "a³+b³", formula: "(a+b)(a² - ab + b²)" },
+        { name: "a³-b³", formula: "(a-b)(a² + ab + b²)" },
+        { name: "If a+b+c=0", formula: "a³+b³+c³ = 3abc" },
+        { name: "a²+b²", formula: "(a+b)² - 2ab" },
+        { name: "x + 1/x = k", formula: "x² + 1/x² = k² - 2" },
+        { name: "AM ≥ GM", formula: "(a+b)/2 ≥ √(ab)" },
+      ],
+    },
+    {
+      subject: "Geometry", color: "#2a9d8f",
+      items: [
+        { name: "Pythagoras", formula: "a² + b² = c²" },
+        { name: "Area of Triangle", formula: "½ × base × height" },
+        { name: "Heron's formula", formula: "√[s(s-a)(s-b)(s-c)], s=(a+b+c)/2" },
+        { name: "Angle bisector", formula: "BD/DC = AB/AC" },
+        { name: "Median formula", formula: "m² = (2b²+2c²-a²)/4" },
+        { name: "Circumradius", formula: "R = abc / (4 × Area)" },
+        { name: "Inradius", formula: "r = Area / s" },
+        { name: "Tangent from ext point", formula: "PT² = PA × PB" },
+        { name: "Angle in semicircle", formula: "= 90°" },
+        { name: "Inscribed angle theorem", formula: "∠centre = 2 × ∠inscribed" },
+        { name: "BPT", formula: "DE∥BC → AD/DB = AE/EC" },
+        { name: "Similar triangles", formula: "Area ratio = (side ratio)²" },
+      ],
+    },
+    {
+      subject: "Trigonometry", color: "#e9c46a",
+      items: [
+        { name: "sin 0°,30°,45°,60°,90°", formula: "0, 1/2, 1/√2, √3/2, 1" },
+        { name: "cos 0°,30°,45°,60°,90°", formula: "1, √3/2, 1/√2, 1/2, 0" },
+        { name: "tan 0°,30°,45°,60°,90°", formula: "0, 1/√3, 1, √3, ∞" },
+        { name: "sin²θ + cos²θ", formula: "= 1" },
+        { name: "1 + tan²θ", formula: "= sec²θ" },
+        { name: "1 + cot²θ", formula: "= cosec²θ" },
+        { name: "sin(90°-θ)", formula: "= cosθ" },
+        { name: "tan(90°-θ)", formula: "= cotθ" },
+        { name: "Height & Distance", formula: "tan θ = Opposite / Adjacent" },
+        { name: "sin rule", formula: "a/sinA = b/sinB = 2R" },
+        { name: "cos rule", formula: "a² = b²+c² - 2bc·cosA" },
+      ],
+    },
+    {
+      subject: "Mensuration", color: "#457b9d",
+      items: [
+        { name: "Circle: Area", formula: "πr²" },
+        { name: "Circle: Circumference", formula: "2πr" },
+        { name: "Rectangle: Area", formula: "l × b" },
+        { name: "Rectangle: Perimeter", formula: "2(l + b)" },
+        { name: "Trapezium: Area", formula: "½(a+b)×h" },
+        { name: "Rhombus: Area", formula: "½ × d₁ × d₂" },
+        { name: "Cylinder: Volume", formula: "πr²h" },
+        { name: "Cylinder: CSA", formula: "2πrh" },
+        { name: "Cone: Volume", formula: "⅓πr²h" },
+        { name: "Cone: Slant height", formula: "l = √(r²+h²)" },
+        { name: "Sphere: Volume", formula: "⁴⁄₃πr³" },
+        { name: "Sphere: Surface Area", formula: "4πr²" },
+        { name: "Cube: Volume", formula: "a³" },
+        { name: "Cuboid: Volume", formula: "l × b × h" },
+      ],
+    },
+  ],
+  studyPlan: {
+    tier1: [
+      { week: "Week 1–2", focus: "Reasoning Foundation", tasks: ["Analogies (verbal + non-verbal)", "Series (number, letter, mixed)", "Coding-Decoding all patterns", "Blood Relations + Direction-Distance"] },
+      { week: "Week 3–4", focus: "Quant — Arithmetic", tasks: ["Percentage, Ratio, Average", "Profit-Loss-Discount", "Time-Speed-Distance, Time-Work", "SI & CI, Mixture-Alligation"] },
+      { week: "Week 5–6", focus: "Quant — Advanced Math", tasks: ["Algebra — all identities + equations", "Geometry — triangles, circles, polygons", "Trigonometry — all standard values + Heights & Distances", "Mensuration 2D & 3D"] },
+      { week: "Week 7–8", focus: "English", tasks: ["Vocabulary: 50 words/day (Synonyms, Antonyms, OWS)", "Idioms & Phrases (Norman Lewis / SP Bakshi)", "Grammar: Error Spotting rules", "RC practice (10 passages/week)", "Active/Passive, Direct/Indirect"] },
+      { week: "Week 9–10", focus: "General Awareness", tasks: ["NCERT History 6–10 (quick notes)", "Indian Polity basics (Laxmikant)", "Geography — Physical + Indian", "Science: Biology, Chemistry, Physics one-liners", "Current Affairs last 6 months"] },
+      { week: "Week 11–12", focus: "Mock Tests & Revision", tasks: ["3 full mocks per week", "Analyse every mistake — do not repeat errors", "Revise weak topics only", "Time management: complete Tier 1 in 55 mins"] },
+    ],
+    tier2: [
+      { week: "Month 1", focus: "Math — Deep Dive", tasks: ["Algebra + Geometry + Trigonometry (Tier 2 level)", "Mensuration 3D (all formulas)", "DI: Tables, Bar, Pie, Line, Mixed", "Practice 50 Quant Qs daily"] },
+      { week: "Month 2", focus: "English + Reasoning", tasks: ["RC: 5 passages/day (CAT level)", "Vocabulary: 70 words/day", "Tier 2 Reasoning: Critical Thinking, Matrix, Complex Series", "Emotional Intelligence question types"] },
+      { week: "Month 3", focus: "GA + Computer + Full Mocks", tasks: ["GA: Economy section added (Budget, RBI, GDP, Inflation)", "Computer Knowledge: MS Office, Networking, OS in 1 week", "4 full mocks per week (Tier 2 pattern)", "Mock analysis: aim for 500+ out of 600 (Paper I)"] },
+    ],
+  },
+};
+
+const SYLLABUS = {
+  "Tier 1": {
+    color: "#4361ee",
+    sections: {
+      "General Intelligence & Reasoning": {
+        color: "#e63946",
+        topics: ["Analogies (Verbal & Non-Verbal)","Number / Letter Series","Figural Series","Coding & Decoding","Blood Relations","Direction & Distance","Syllogism","Matrix & Odd One Out","Venn Diagrams","Paper Folding & Cutting","Mirror & Water Image","Embedded Figures","Ranking & Order","Calendar & Clock","Statement & Conclusion"],
+      },
+      "General Awareness": {
+        color: "#2a9d8f",
+        topics: ["Ancient History (NCERT 6-8)","Medieval History","Modern History & Freedom Struggle","Indian Polity & Constitution","Indian Geography (Physical)","Indian Geography (Economic & Human)","World Geography","Indian Economy basics","Biology — Human Body & Diseases","Biology — Plant Kingdom & Environment","Chemistry — Everyday Chemistry","Physics — Basic Laws & Concepts","Current Affairs (last 6 months)","Science & Technology","Sports, Awards & Honours","Books & Authors","Important Days & Schemes","Static GK — National Parks, Dams, Rivers"],
+      },
+      "Quantitative Aptitude": {
+        color: "#e9c46a",
+        topics: ["Number System & HCF/LCM","Simplification & BODMAS","Percentage","Ratio & Proportion","Average","Simple Interest","Compound Interest","Profit, Loss & Discount","Time, Speed & Distance","Boats & Streams","Time & Work","Pipes & Cisterns","Mixture & Alligation","Partnership Business","Basic Algebra & Identities","Linear & Quadratic Equations","Geometry — Triangles (all theorems)","Geometry — Circles (all theorems)","Geometry — Polygons & Quadrilaterals","Mensuration 2D (Area, Perimeter)","Mensuration 3D (Volume, Surface Area)","Trigonometry — Standard Values","Trigonometry — Heights & Distances","Coordinate Geometry basics","Data Interpretation (Bar, Pie, Table)"],
+      },
+      "English Comprehension": {
+        color: "#457b9d",
+        topics: ["Synonyms & Antonyms (Vocabulary)","Idioms & Phrases","One Word Substitution","Error Spotting","Sentence Correction / Improvement","Fill in the Blanks","Spelling Correction","Active & Passive Voice","Direct & Indirect Speech","Para-jumble / Sentence Rearrangement","Cloze Test","Reading Comprehension"],
+      },
+    },
+  },
+  "Tier 2 — Paper I": {
+    color: "#7b2ff7",
+    sections: {
+      "Mathematical Abilities": {
+        color: "#e63946",
+        topics: ["Number System (advanced)","HCF, LCM & Divisibility","Percentage (complex problems)","Ratio, Proportion & Variation","Average (weighted average)","Simple & Compound Interest","Profit, Loss & Discount (advanced)","Time, Speed & Distance (trains, boats)","Time & Work (efficiency based)","Mixture & Alligation (advanced)","Algebra — Identities & Expressions","Algebraic Equations (linear, quadratic)","Geometry — Triangle theorems (advanced)","Geometry — Circle theorems (advanced)","Geometry — Polygon & Angles","Mensuration 2D (all shapes)","Mensuration 3D (all solids)","Trigonometry — Ratios & Identities","Trigonometry — Heights & Distances","Coordinate Geometry","Data Interpretation — Tables","Data Interpretation — Bar & Line Charts","Data Interpretation — Pie Charts","Data Interpretation — Mixed / Caselet"],
+      },
+      "Reasoning & General Intelligence": {
+        color: "#6a4c93",
+        topics: ["Analogies (Semantic, Symbolic, Figural)","Classification (all types)","Series (Number, Letter, Matrix)","Coding & Decoding (advanced)","Venn Diagrams & Syllogism","Statement & Conclusions","Critical Thinking","Pattern Completion & Folding","Indexing & Address Matching","Embedded Figures (complex)","Emotional Intelligence questions","Social Intelligence questions","Word Building & Operations"],
+      },
+      "English Language & Comprehension": {
+        color: "#457b9d",
+        topics: ["Vocabulary — Synonyms (advanced list)","Vocabulary — Antonyms (advanced list)","Idioms & Phrases (extended list)","One Word Substitution (extended list)","Error Spotting (grammar rules)","Sentence Correction & Improvement","Fill in the Blanks (grammar + vocab)","Cloze Test (passage based)","Active & Passive Voice (advanced)","Direct & Indirect Speech (advanced)","Para-jumble (complex passages)","Reading Comprehension — Passage 1","Reading Comprehension — Passage 2","Reading Comprehension — Passage 3","Reading Comprehension — Passage 4"],
+      },
+      "General Awareness": {
+        color: "#2a9d8f",
+        topics: ["Indian History (consolidated)","Indian Polity & Constitutional Articles","Indian Geography","Indian Economy & Budget terms","RBI & Monetary Policy basics","Science — Biology","Science — Chemistry","Science — Physics","Current Affairs (recent 6 months)","Sports & Awards","Static GK"],
+      },
+      "Computer Knowledge": {
+        color: "#f4a261",
+        topics: ["Computer Fundamentals (CPU, Memory, I/O)","Operating System — Windows basics","MS Word — features & shortcuts","MS Excel — formulas & shortcuts","MS PowerPoint — features","Internet & Email basics","Networking — LAN, WAN, MAN, Protocols","Cyber Security basics","Input & Output Devices","Computer Memory (RAM, ROM, Cache)"],
+      },
+    },
+  },
+};
+
+const MOCK_TESTS = [
+  {
+    id: "t1_reasoning", title: "Tier 1 — Reasoning", color: "#e63946",
+    questions: [
+      { q: "If A is the brother of B, B is the sister of C, and C is the father of D, how is A related to D?", options: ["Uncle", "Father", "Brother", "Grandfather"], answer: 0 },
+      { q: "Find the odd one out: 17, 23, 37, 51, 53", options: ["23", "37", "51", "53"], answer: 2 },
+      { q: "In a code language, COMPUTER is written as RFUVQNPC. How is MEDICINE written?", options: ["MFEJDJOF", "EOJDJEFM", "MFEJDJOF", "FMDJJEOF"], answer: 0 },
+      { q: "Pointing to a photograph, a man says 'This man's son is my son's father.' How is the man related to the person in the photo?", options: ["Grandfather", "Father", "Son", "Brother"], answer: 1 },
+      { q: "Which number replaces the question mark? 2, 6, 12, 20, 30, ?", options: ["40", "42", "44", "46"], answer: 1 },
+    ],
+  },
+  {
+    id: "t1_quant", title: "Tier 1 — Quant", color: "#e9c46a",
+    questions: [
+      { q: "A shopkeeper sold an article at a profit of 25%. If the cost price was ₹800, what was the selling price?", options: ["₹900", "₹950", "₹1000", "₹1050"], answer: 2 },
+      { q: "If (a+b)² = 49 and ab = 6, find a² + b².", options: ["37", "39", "41", "43"], answer: 0 },
+      { q: "A train 150m long passes a pole in 15 seconds. What is its speed in km/h?", options: ["36 km/h", "54 km/h", "72 km/h", "90 km/h"], answer: 0 },
+      { q: "The value of sin²30° + cos²45° + tan²60° is:", options: ["3", "2.25", "2.75", "3.25"], answer: 2 },
+      { q: "Two pipes A and B can fill a tank in 10 and 15 hours respectively. If both are opened together, in how many hours will the tank be full?", options: ["5 hrs", "6 hrs", "7 hrs", "8 hrs"], answer: 1 },
+    ],
+  },
+  {
+    id: "t1_english", title: "Tier 1 — English", color: "#457b9d",
+    questions: [
+      { q: "Choose the synonym of EPHEMERAL:", options: ["Permanent", "Transient", "Eternal", "Durable"], answer: 1 },
+      { q: "Find the error: 'Neither of the two boys (a) have done (b) their homework (c). No error (d)'", options: ["(a)", "(b)", "(c)", "(d)"], answer: 1 },
+      { q: "Choose the antonym of LOQUACIOUS:", options: ["Talkative", "Verbose", "Taciturn", "Garrulous"], answer: 2 },
+      { q: "One Word Substitution: A person who is unable to pay debts:", options: ["Insolvent", "Creditor", "Debtor", "Bankrupt"], answer: 0 },
+      { q: "Fill in the blank: The committee _____ its decision yesterday.", options: ["announce", "announced", "has announced", "announcing"], answer: 1 },
+    ],
+  },
+  {
+    id: "t1_ga", title: "Tier 1 — General Awareness", color: "#2a9d8f",
+    questions: [
+      { q: "Which Article of the Indian Constitution deals with the Right to Equality?", options: ["Article 12", "Article 14", "Article 19", "Article 21"], answer: 1 },
+      { q: "The Palk Strait separates India from:", options: ["Bangladesh", "Myanmar", "Sri Lanka", "Maldives"], answer: 2 },
+      { q: "Which gas is responsible for the greenhouse effect?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], answer: 2 },
+      { q: "Who wrote 'Discovery of India'?", options: ["Mahatma Gandhi", "Jawaharlal Nehru", "Sardar Patel", "B.R. Ambedkar"], answer: 1 },
+      { q: "The first Five-Year Plan of India was launched in:", options: ["1947", "1950", "1951", "1952"], answer: 2 },
+    ],
+  },
+];
+
+// ══════════════════════════════════════════════════════════════
+//  STORAGE — localStorage (works offline)
+// ══════════════════════════════════════════════════════════════
+const STORAGE_KEY = "ssc_cgl_v3";
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+function saveData(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════
+const pct = (d, t) => t === 0 ? 0 : Math.round((d / t) * 100);
+const impColor = (i) => ({ "Very High": "#ef4444", "High": "#f97316", "Medium": "#eab308", "Low": "#6b7280" }[i] || "#6b7280");
+function countTopics(tier) { let t = 0; Object.values(tier.sections).forEach(s => t += s.topics.length); return t; }
+function countDone(tier, tk, prog) { let d = 0; Object.entries(tier.sections).forEach(([sk, s]) => s.topics.forEach(t => { if (prog[`${tk}||${sk}||${t}`]) d++; })); return d; }
+
+// ══════════════════════════════════════════════════════════════
+//  UI COMPONENTS
+// ══════════════════════════════════════════════════════════════
+function LinearBar({ percent, color, height = 8 }) {
+  return (
+    <div style={{ background: "#1a1a3e", borderRadius: 99, height, overflow: "hidden" }}>
+      <div style={{ width: `${percent}%`, height: "100%", background: `linear-gradient(90deg,${color}88,${color})`, borderRadius: 99, transition: "width 0.6s ease" }} />
+    </div>
+  );
+}
+
+function CircleProgress({ percent, color, size = 64 }) {
+  const r = (size - 8) / 2, circ = 2 * Math.PI * r;
+  const dash = circ * percent / 100;
+  return (
+    <svg width={size} height={size} style={{ flexShrink: 0 }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#1a1a3e" strokeWidth={8} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={8}
+        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+        transform={`rotate(-90 ${size/2} ${size/2})`}
+        style={{ transition: "stroke-dasharray 0.7s ease" }} />
+      <text x={size/2} y={size/2+1} textAnchor="middle" dominantBaseline="middle"
+        style={{ fill: color, fontSize: size*0.2, fontWeight: 800, fontFamily: "monospace" }}>
+        {percent}%
+      </text>
+    </svg>
+  );
+}
+
+function FreqBar({ freq, max = 10 }) {
+  return (
+    <div style={{ display: "flex", gap: 3, marginBottom: 8 }}>
+      {Array.from({ length: max }).map((_, i) => (
+        <div key={i} style={{ flex: 1, height: 5, borderRadius: 3, background: i < freq ? "#4361ee" : "#1a1a3e", transition: "background 0.3s" }} />
+      ))}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STYLES
+// ══════════════════════════════════════════════════════════════
+const S = {
+  app: { background: "#070714", minHeight: "100vh", fontFamily: "'Segoe UI', system-ui, sans-serif", color: "#e2e8f0" },
+  header: { background: "linear-gradient(135deg,#0f0f2a 0%,#070714 100%)", borderBottom: "1px solid #1e1e40", padding: "16px 16px 0" },
+  title: { fontSize: "clamp(15px,3.5vw,20px)", fontWeight: 900, background: "linear-gradient(90deg,#4361ee,#7b2ff7,#a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0, letterSpacing: "-0.3px" },
+  sub: { fontSize: 11, color: "#475569", marginTop: 2 },
+  tabs: { display: "flex", gap: 1, overflowX: "auto", scrollbarWidth: "none", marginTop: 12 },
+  tab: (a) => ({ padding: "9px 12px", border: "none", background: "transparent", color: a ? "#7b9fff" : "#4a5568", borderBottom: a ? "2px solid #4361ee" : "2px solid transparent", cursor: "pointer", fontSize: 12, fontWeight: a ? 700 : 500, whiteSpace: "nowrap" }),
+  content: { padding: "14px", maxWidth: 860, margin: "0 auto" },
+  card: (c = "#4361ee") => ({ background: "#0d0d20", border: `1px solid ${c}28`, borderRadius: 12, padding: 14, marginBottom: 10 }),
+  btn: (c, outline) => ({ padding: "6px 12px", borderRadius: 8, border: `1px solid ${c}`, background: outline ? "transparent" : `${c}22`, color: c, cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.15s" }),
+  chip: (active, color) => ({ padding: "6px 13px", borderRadius: 20, border: `1px solid ${active ? color : "#2a2a4a"}`, background: active ? `${color}22` : "transparent", color: active ? color : "#64748b", cursor: "pointer", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", transition: "all 0.2s" }),
+  tag: (c) => ({ display: "inline-block", padding: "2px 8px", borderRadius: 10, background: `${c}22`, color: c, fontSize: 11, fontWeight: 700 }),
+  topicRow: (done) => ({ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8, marginBottom: 4, cursor: "pointer", background: done ? "#0d2d1a" : "#0d0d20", border: `1px solid ${done ? "#22c55e33" : "#1e1e3a"}`, transition: "all 0.15s" }),
+  checkbox: (done, color) => ({ width: 20, height: 20, borderRadius: 6, border: `2px solid ${done ? color : "#3a3a5a"}`, background: done ? color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }),
+  stratRow: { display: "flex", gap: 10, padding: "7px 0", borderBottom: "1px solid #1a1a3e", fontSize: 13, lineHeight: 1.5 },
+  fRow: { background: "#070714", border: "1px solid #1e1e3a", borderRadius: 8, padding: "9px 13px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 5 },
+  statBox: (c) => ({ background: `${c}12`, border: `1px solid ${c}30`, borderRadius: 10, padding: "10px 12px", textAlign: "center" }),
+};
+
+// ══════════════════════════════════════════════════════════════
+//  GUIDE COMPONENTS
+// ══════════════════════════════════════════════════════════════
+function GuideOverview() {
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 8, marginBottom: 14 }}>
+        {[["Exam Mode","CBT Online","#4361ee"],["Tier 1","100 Qs / 200M","#2a9d8f"],["Tier 1 Time","60 Minutes","#e9c46a"],["Tier 2 Paper I","150 Qs / 450M","#e63946"],["Tier 2 Time","2hr 30min","#6a4c93"],["Negative","-0.5(T1) / -1(T2)","#f4a261"]].map(([l,v,c])=>(
+          <div key={l} style={S.statBox(c)}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 3 }}>{l}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: c }}>{v}</div>
+          </div>
+        ))}
+      </div>
+      <div style={S.card()}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", marginBottom: 10 }}>🎯 Tier 1 Sections (100 Qs | 200M)</div>
+        {GUIDE.tier1.sections.map(s => (
+          <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <div style={{ width: 9, height: 9, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
+            <div style={{ flex: 1, fontSize: 13 }}>{s.name}</div>
+            <span style={S.tag(s.color)}>25 Qs | 50M</span>
+          </div>
+        ))}
+      </div>
+      <div style={S.card()}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", marginBottom: 10 }}>🎯 Tier 2 Paper I (150 Qs | 450M)</div>
+        {[["Mathematical Abilities",30,90,"#e63946"],["Reasoning & GI",30,90,"#6a4c93"],["English Language & Comprehension",45,135,"#457b9d"],["General Awareness",25,75,"#2a9d8f"],["Computer Knowledge",20,60,"#f4a261"]].map(([n,q,m,c]) => (
+          <div key={n} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <div style={{ width: 9, height: 9, borderRadius: "50%", background: c, flexShrink: 0 }} />
+            <div style={{ flex: 1, fontSize: 13 }}>{n}</div>
+            <span style={S.tag(c)}>{q} Qs | {m}M</span>
+          </div>
+        ))}
+        <div style={{ borderTop: "1px solid #1e1e3a", marginTop: 8, paddingTop: 8, textAlign: "right" }}>
+          <span style={S.tag("#94a3b8")}>Total: 150 Qs | 450M</span>
+        </div>
+      </div>
+      <div style={S.card("#e63946")}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#e63946", marginBottom: 8 }}>⚠️ Key Rules</div>
+        {["Tier 1 is QUALIFYING ONLY — marks not counted in final merit","Final merit = Tier 2 performance ONLY","Negative marking: -0.5 per wrong in Tier 1, -1 in Tier 2","Questions in English & Hindi (except English section itself)","Computer Knowledge tested separately in Tier 2 Paper I"].map((r, i) => (
+          <div key={i} style={S.stratRow}><span style={{ color: "#e63946", fontWeight: 700 }}>•</span><span>{r}</span></div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GuideTier({ sections }) {
+  const [active, setActive] = useState(0);
+  const sec = sections[active];
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+        {sections.map((s, i) => (
+          <button key={i} onClick={() => setActive(i)} style={S.chip(active === i, s.color)}>
+            {s.name.split(" ").slice(-1)[0]}
+          </button>
+        ))}
+      </div>
+      <div style={S.card(sec.color)}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: sec.color, marginBottom: 2 }}>{sec.name}</div>
+        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>{sec.questions} Questions | {sec.marks} Marks</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", marginBottom: 8 }}>📊 Topic Weightage</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
+          {sec.weightage.map((w, i) => (
+            <div key={i}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                <span style={{ fontSize: 12 }}>{w.topic}</span>
+                <span style={S.tag(impColor(w.importance))}>{w.importance}</span>
+              </div>
+              <FreqBar freq={w.freq} max={12} />
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", marginBottom: 8 }}>💡 Strategy</div>
+        {sec.strategy.map((s, i) => (
+          <div key={i} style={S.stratRow}>
+            <span style={{ color: sec.color, fontWeight: 800, flexShrink: 0 }}>{i + 1}.</span>
+            <span style={{ fontSize: 13 }}>{s}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GuideFormulas() {
+  const [active, setActive] = useState(0);
+  const f = GUIDE.formulas[active];
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+        {GUIDE.formulas.map((f, i) => (
+          <button key={i} onClick={() => setActive(i)} style={S.chip(active === i, f.color)}>{f.subject}</button>
+        ))}
+      </div>
+      <div style={S.card(f.color)}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: f.color, marginBottom: 14 }}>📐 {f.subject} Formulas</div>
+        {f.items.map((item, i) => (
+          <div key={i} style={S.fRow}>
+            <div style={{ fontSize: 12, color: "#94a3b8", flexShrink: 0, maxWidth: "45%" }}>{item.name}</div>
+            <div style={{ fontSize: 13, color: f.color, fontFamily: "monospace", fontWeight: 700, textAlign: "right" }}>{item.formula}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GuideStudyPlan() {
+  const [tier, setTier] = useState("tier1");
+  const plan = GUIDE.studyPlan[tier];
+  const c = tier === "tier1" ? "#4361ee" : "#7b2ff7";
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+        <button onClick={() => setTier("tier1")} style={S.chip(tier === "tier1", "#4361ee")}>Tier 1 Plan (12 Weeks)</button>
+        <button onClick={() => setTier("tier2")} style={S.chip(tier === "tier2", "#7b2ff7")}>Tier 2 Plan (3 Months)</button>
+      </div>
+      {plan.map((w, i) => (
+        <div key={i} style={S.card(c)}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: tier === "tier1" ? "#7b9fff" : "#b088f9" }}>{w.week}</div>
+            <span style={S.tag(c)}>{w.focus}</span>
+          </div>
+          {w.tasks.map((t, j) => (
+            <div key={j} style={{ ...S.stratRow, borderColor: "#1a1a3e" }}>
+              <span style={{ color: c, fontWeight: 700 }}>✓</span>
+              <span style={{ fontSize: 13 }}>{t}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+      <div style={S.card("#2a9d8f")}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#2a9d8f", marginBottom: 10 }}>📚 Recommended Books</div>
+        {[
+          ["Reasoning", "A Modern Approach — R.S. Aggarwal", "#e63946"],
+          ["Quant (Arithmetic)", "Quantitative Aptitude — R.S. Aggarwal", "#e9c46a"],
+          ["Quant (Advanced)", "SSC Mathematics — Rakesh Yadav", "#e9c46a"],
+          ["English", "Objective General English — S.P. Bakshi", "#457b9d"],
+          ["Vocabulary", "Word Power Made Easy — Norman Lewis", "#457b9d"],
+          ["GA", "Lucent's General Knowledge", "#2a9d8f"],
+          ["Current Affairs", "Pratiyogita Darpan (Monthly)", "#2a9d8f"],
+        ].map(([s, b, c], i) => (
+          <div key={i} style={{ ...S.stratRow, borderColor: "#1a2a2a" }}>
+            <span style={S.tag(c)}>{s}</span>
+            <span style={{ fontSize: 13 }}>{b}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STUDY TIMER COMPONENT
+// ══════════════════════════════════════════════════════════════
+const { useRef, useCallback } = React;
+
+function fmtHMS(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function fmtHM(hrs) {
+  const h = Math.floor(hrs), m = Math.round((hrs - h) * 60);
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function daysLeft(examDate) {
+  if (!examDate) return null;
+  const diff = new Date(examDate) - new Date(new Date().toDateString());
+  return Math.ceil(diff / 86400000);
+}
+
+const TIMER_KEY = "ssc_timer_v1";
+function loadTimer() { try { return JSON.parse(localStorage.getItem(TIMER_KEY) || "{}"); } catch { return {}; } }
+function saveTimer(d) { try { localStorage.setItem(TIMER_KEY, JSON.stringify(d)); } catch {} }
+
+function StudyTimer() {
+  const initData = loadTimer();
+  const [examDate, setExamDate] = useState(initData.examDate || "");
+  const [editExam, setEditExam] = useState(false);
+  const [examInput, setExamInput] = useState(initData.examDate || "");
+  // Stopwatch: seconds elapsed today from stopwatch
+  const [swRunning, setSwRunning] = useState(false);
+  const [swElapsed, setSwElapsed] = useState(0); // live display only
+  const swStartRef = useRef(null);  // timestamp when started
+  const swBaseRef  = useRef(0);     // seconds already accumulated before this start
+  const intervalRef = useRef(null);
+  // Per-day data: { "YYYY-MM-DD": { swSecs: number, manualHrs: number } }
+  const [dayData, setDayData] = useState(initData.dayData || {});
+  const [manualHrs, setManualHrs] = useState("");
+  const [manualNote, setManualNote] = useState(false);
+  const [histPage, setHistPage] = useState(0);
+
+  // On mount restore running state
+  useEffect(() => {
+    const d = loadTimer();
+    if (d.swRunning && d.swStartTs) {
+      const resumedBase = d.swBase || 0;
+      swStartRef.current = d.swStartTs;
+      swBaseRef.current = resumedBase;
+      const elapsed = resumedBase + Math.floor((Date.now() - d.swStartTs) / 1000);
+      setSwElapsed(elapsed);
+      setSwRunning(true);
+    }
+  }, []);
+
+  // Tick
+  useEffect(() => {
+    if (swRunning) {
+      intervalRef.current = setInterval(() => {
+        setSwElapsed(swBaseRef.current + Math.floor((Date.now() - swStartRef.current) / 1000));
+      }, 1000);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+    return () => clearInterval(intervalRef.current);
+  }, [swRunning]);
+
+  const persist = useCallback((newDayData, newExamDate, running, startTs, base) => {
+    saveTimer({
+      examDate: newExamDate,
+      dayData: newDayData,
+      swRunning: running,
+      swStartTs: startTs,
+      swBase: base,
+    });
+  }, []);
+
+  const startSW = () => {
+    const now = Date.now();
+    // Save any previously stopped seconds into today's swSecs
+    swStartRef.current = now;
+    setSwRunning(true);
+    persist(dayData, examDate, true, now, swBaseRef.current);
+  };
+
+  const stopSW = () => {
+    const elapsed = swBaseRef.current + Math.floor((Date.now() - swStartRef.current) / 1000);
+    swBaseRef.current = elapsed;
+    setSwElapsed(elapsed);
+    setSwRunning(false);
+    // Commit seconds to today
+    const dk = todayKey();
+    const nd = { ...dayData, [dk]: { swSecs: elapsed, manualHrs: (dayData[dk]?.manualHrs || 0) } };
+    setDayData(nd);
+    persist(nd, examDate, false, null, elapsed);
+  };
+
+  const resetSW = () => {
+    if (!window.confirm("Reset today's stopwatch? This will remove today's stopwatch time.")) return;
+    clearInterval(intervalRef.current);
+    swBaseRef.current = 0;
+    swStartRef.current = null;
+    setSwElapsed(0);
+    setSwRunning(false);
+    const dk = todayKey();
+    const nd = { ...dayData, [dk]: { swSecs: 0, manualHrs: (dayData[dk]?.manualHrs || 0) } };
+    setDayData(nd);
+    persist(nd, examDate, false, null, 0);
+  };
+
+  const addManual = () => {
+    const h = parseFloat(manualHrs);
+    if (isNaN(h) || h <= 0 || h > 24) { setManualNote(true); return; }
+    setManualNote(false);
+    const dk = todayKey();
+    const nd = { ...dayData, [dk]: { swSecs: (dayData[dk]?.swSecs || 0), manualHrs: (dayData[dk]?.manualHrs || 0) + h } };
+    setDayData(nd);
+    setManualHrs("");
+    persist(nd, examDate, swRunning, swStartRef.current, swBaseRef.current);
+  };
+
+  const saveExamDate = () => {
+    setExamDate(examInput);
+    setEditExam(false);
+    persist(dayData, examInput, swRunning, swStartRef.current, swBaseRef.current);
+  };
+
+  // Derived stats
+  const today = todayKey();
+  const todaySW = swRunning ? swElapsed : (dayData[today]?.swSecs || 0);
+  const todayManual = dayData[today]?.manualHrs || 0;
+  const todayTotal = todaySW / 3600 + todayManual;
+
+  // All days with data
+  const allDays = Object.keys(dayData).sort().reverse();
+  const allDaysTotal = allDays.map(dk => {
+    const d = dayData[dk];
+    return (d.swSecs || 0) / 3600 + (d.manualHrs || 0);
+  });
+  const totalStudied = allDaysTotal.reduce((a, b) => a + b, 0);
+  const activeDays = allDaysTotal.filter(h => h > 0).length;
+  const avgPerDay = activeDays > 0 ? totalStudied / activeDays : 0;
+
+  // Streak
+  let streak = 0;
+  const checkDate = new Date();
+  // If today not yet 2h, start from yesterday for streak
+  if (todayTotal < 2) checkDate.setDate(checkDate.getDate() - 1);
+  for (let i = 0; i < 365; i++) {
+    const dk = `${checkDate.getFullYear()}-${String(checkDate.getMonth()+1).padStart(2,'0')}-${String(checkDate.getDate()).padStart(2,'0')}`;
+    const hrs = (dayData[dk]?.swSecs || 0) / 3600 + (dayData[dk]?.manualHrs || 0);
+    if (hrs >= 2) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
+    else break;
+  }
+  const todayStreakQualified = todayTotal >= 2;
+
+  const dl = daysLeft(examDate);
+  const HIST_PAGE_SIZE = 10;
+  const histDays = allDays.slice(histPage * HIST_PAGE_SIZE, (histPage + 1) * HIST_PAGE_SIZE);
+  const totalHistPages = Math.ceil(allDays.length / HIST_PAGE_SIZE);
+
+  const swColor = swRunning ? "#22c55e" : "#4361ee";
+  const streakColor = streak >= 7 ? "#f59e0b" : streak >= 3 ? "#f97316" : "#4361ee";
+
+  return (
+    <div>
+      {/* Exam countdown */}
+      <div style={{ ...S.card("#e63946"), marginBottom: 10 }}>
+        {!editExam ? (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 2 }}>📅 Exam Date</div>
+              {examDate ? (
+                <>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{new Date(examDate).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: dl <= 30 ? "#e63946" : dl <= 90 ? "#f97316" : "#22c55e", marginTop: 2 }}>
+                    {dl !== null ? (dl > 0 ? `${dl} days left` : dl === 0 ? "Exam is TODAY! 🔥" : `${Math.abs(dl)} days ago`) : "—"}
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: 13, color: "#64748b" }}>Tap to set exam date</div>
+              )}
+            </div>
+            <button onClick={() => { setEditExam(true); setExamInput(examDate); }} style={S.btn("#e63946")}>
+              {examDate ? "✏️ Edit" : "Set Date"}
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6 }}>Enter Exam Date</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input type="date" value={examInput} onChange={e => setExamInput(e.target.value)}
+                style={{ flex: 1, background: "#1a1a3e", border: "1px solid #e6394666", borderRadius: 8, padding: "8px 10px", color: "#e2e8f0", fontSize: 13 }} />
+              <button onClick={saveExamDate} style={S.btn("#22c55e")}>Save</button>
+              <button onClick={() => setEditExam(false)} style={S.btn("#64748b", true)}>✕</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Key stats row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 10 }}>
+        <div style={S.statBox(streakColor)}>
+          <div style={{ fontSize: 10, color: "#64748b" }}>🔥 Streak</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: streakColor }}>{streak}</div>
+          <div style={{ fontSize: 10, color: "#64748b" }}>days</div>
+          {todayStreakQualified && <div style={{ fontSize: 10, color: "#22c55e", marginTop: 2 }}>✓ today</div>}
+        </div>
+        <div style={S.statBox("#a855f7")}>
+          <div style={{ fontSize: 10, color: "#64748b" }}>📈 Avg/day</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#a855f7" }}>{fmtHM(avgPerDay)}</div>
+          <div style={{ fontSize: 10, color: "#64748b" }}>{activeDays} active days</div>
+        </div>
+        <div style={S.statBox("#2a9d8f")}>
+          <div style={{ fontSize: 10, color: "#64748b" }}>📚 Total</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#2a9d8f" }}>{fmtHM(totalStudied)}</div>
+          <div style={{ fontSize: 10, color: "#64748b" }}>studied</div>
+        </div>
+      </div>
+
+      {/* Today summary */}
+      <div style={{ ...S.card(swColor), marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>📖 Today — {new Date().toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"})}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 10 }}>
+          <div style={S.statBox(swColor)}>
+            <div style={{ fontSize: 10, color: "#64748b" }}>⏱ Stopwatch</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: swColor, fontFamily: "monospace" }}>{fmtHM(todaySW/3600)}</div>
+          </div>
+          <div style={S.statBox("#f97316")}>
+            <div style={{ fontSize: 10, color: "#64748b" }}>✍️ Manual</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#f97316" }}>{fmtHM(todayManual)}</div>
+          </div>
+          <div style={S.statBox(todayTotal >= 2 ? "#22c55e" : "#e63946")}>
+            <div style={{ fontSize: 10, color: "#64748b" }}>🎯 Total</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: todayTotal >= 2 ? "#22c55e" : "#e63946" }}>{fmtHM(todayTotal)}</div>
+          </div>
+        </div>
+        {/* 2h goal bar */}
+        <div style={{ marginBottom: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+            <span style={{ fontSize: 11, color: "#64748b" }}>Daily goal (2h for streak)</span>
+            <span style={{ fontSize: 11, color: todayTotal >= 2 ? "#22c55e" : "#64748b" }}>{Math.min(100,Math.round(todayTotal/2*100))}%</span>
+          </div>
+          <LinearBar percent={Math.min(100, todayTotal/2*100)} color={todayTotal >= 2 ? "#22c55e" : "#4361ee"} height={7} />
+        </div>
+      </div>
+
+      {/* Stopwatch */}
+      <div style={{ ...S.card(swColor), textAlign: "center", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>⏱ Stopwatch {swRunning && <span style={{ color: "#22c55e", fontWeight: 700 }}>● RUNNING</span>}</div>
+        <div style={{ fontSize: 48, fontWeight: 900, color: swColor, fontFamily: "monospace", letterSpacing: 2, marginBottom: 14 }}>{fmtHMS(swRunning ? swElapsed : (dayData[today]?.swSecs || 0))}</div>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+          {!swRunning ? (
+            <button onClick={startSW} style={{ ...S.btn("#22c55e"), padding: "10px 28px", fontSize: 14, fontWeight: 800, borderRadius: 12 }}>▶ Start</button>
+          ) : (
+            <button onClick={stopSW} style={{ ...S.btn("#e63946"), padding: "10px 28px", fontSize: 14, fontWeight: 800, borderRadius: 12 }}>⏸ Pause</button>
+          )}
+          <button onClick={resetSW} style={{ ...S.btn("#64748b", true), padding: "10px 16px", borderRadius: 12 }}>↺ Reset</button>
+        </div>
+        <div style={{ fontSize: 11, color: "#475569", marginTop: 10 }}>Timer saves progress even if you close the app</div>
+      </div>
+
+      {/* Manual entry */}
+      <div style={{ ...S.card("#f97316"), marginBottom: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#f97316", marginBottom: 8 }}>✍️ Log Hours Manually (Today)</div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input type="number" min="0.25" max="24" step="0.25" placeholder="e.g. 1.5 (= 1h 30m)"
+            value={manualHrs} onChange={e => { setManualHrs(e.target.value); setManualNote(false); }}
+            style={{ flex: 1, background: "#1a1a3e", border: `1px solid ${manualNote ? "#e63946" : "#f9741644"}`, borderRadius: 8, padding: "9px 12px", color: "#e2e8f0", fontSize: 14 }} />
+          <button onClick={addManual} style={{ ...S.btn("#f97316"), padding: "9px 16px", fontWeight: 700 }}>+ Add</button>
+        </div>
+        {manualNote && <div style={{ fontSize: 11, color: "#e63946", marginTop: 5 }}>Enter a valid number between 0.25 and 24</div>}
+        <div style={{ fontSize: 11, color: "#64748b", marginTop: 6 }}>Enter decimals: 0.5 = 30 min · 1.5 = 1h 30m · 2 = 2h</div>
+        {todayManual > 0 && (
+          <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "#f97316" }}>Today manually logged: <strong>{fmtHM(todayManual)}</strong></span>
+            <button onClick={() => {
+              const nd = { ...dayData, [today]: { swSecs: dayData[today]?.swSecs || 0, manualHrs: 0 } };
+              setDayData(nd); persist(nd, examDate, swRunning, swStartRef.current, swBaseRef.current);
+            }} style={S.btn("#e63946", true)}>Clear</button>
+          </div>
+        )}
+      </div>
+
+      {/* History */}
+      {allDays.length > 0 && (
+        <div style={S.card("#94a3b8")}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", marginBottom: 10 }}>📅 Study History</div>
+          {histDays.map((dk, i) => {
+            const d = dayData[dk];
+            const sw = (d?.swSecs || 0) / 3600;
+            const mn = d?.manualHrs || 0;
+            const total = sw + mn;
+            const dateObj = new Date(dk + "T00:00:00");
+            const label = dateObj.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
+            const isToday = dk === today;
+            return (
+              <div key={dk} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid #1a1a3e" }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: total >= 2 ? "#22c55e" : total > 0 ? "#f97316" : "#4a5568", flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, color: isToday ? "#4361ee" : "#94a3b8", fontWeight: isToday ? 700 : 400 }}>{label}{isToday ? " (today)" : ""}</div>
+                  <div style={{ fontSize: 11, color: "#475569", marginTop: 1 }}>
+                    {sw > 0 && <span>⏱ {fmtHM(sw)}</span>}
+                    {sw > 0 && mn > 0 && <span style={{ margin: "0 4px" }}>+</span>}
+                    {mn > 0 && <span>✍️ {fmtHM(mn)}</span>}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: total >= 2 ? "#22c55e" : total >= 1 ? "#f97316" : "#e63946" }}>{fmtHM(total)}</div>
+                  {total >= 2 && <div style={{ fontSize: 10, color: "#22c55e" }}>🔥 streak</div>}
+                </div>
+              </div>
+            );
+          })}
+          {totalHistPages > 1 && (
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 10 }}>
+              <button onClick={() => setHistPage(p => Math.max(0, p-1))} disabled={histPage === 0} style={S.btn("#64748b", true)}>← Prev</button>
+              <span style={{ fontSize: 12, color: "#64748b", padding: "6px 0" }}>Page {histPage+1}/{totalHistPages}</span>
+              <button onClick={() => setHistPage(p => Math.min(totalHistPages-1, p+1))} disabled={histPage === totalHistPages-1} style={S.btn("#64748b", true)}>Next →</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MOCK TEST COMPONENT
+// ══════════════════════════════════════════════════════════════
+function MockTest({ scores, onScoreSaved }) {
+  const [selected, setSelected] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState(null);
+
+  const startTest = (test) => { setSelected(test); setAnswers({}); setSubmitted(false); setScore(null); };
+  const back = () => { setSelected(null); setSubmitted(false); };
+  const choose = (qi, ai) => { if (!submitted) setAnswers(a => ({ ...a, [qi]: ai })); };
+
+  const submit = () => {
+    if (Object.keys(answers).length < selected.questions.length) {
+      if (!window.confirm("You haven't answered all questions. Submit anyway?")) return;
+    }
+    let correct = 0, wrong = 0;
+    selected.questions.forEach((q, i) => {
+      if (answers[i] !== undefined) {
+        if (answers[i] === q.answer) correct++;
+        else wrong++;
+      }
+    });
+    const s = { correct, wrong, skipped: selected.questions.length - correct - wrong, total: selected.questions.length };
+    setScore(s);
+    setSubmitted(true);
+    onScoreSaved(selected.id, s);
+  };
+
+  if (!selected) {
+    return (
+      <div>
+        <div style={{ ...S.card("#4361ee"), marginBottom: 14 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#7b9fff", marginBottom: 6 }}>🎯 Practice Mini-Tests</div>
+          <div style={{ fontSize: 12, color: "#64748b" }}>5 questions per test · Simulates exam conditions · -0.5 for wrong answers</div>
+        </div>
+        {MOCK_TESTS.map(t => {
+          const prev = scores[t.id];
+          return (
+            <div key={t.id} style={{ ...S.card(t.color), cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }} onClick={() => startTest(t)}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: t.color }}>{t.title}</div>
+                <div style={{ fontSize: 12, color: "#64748b" }}>{t.questions.length} Questions</div>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {prev && (
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 11, color: "#64748b" }}>Last score</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: prev.correct >= 4 ? "#22c55e" : prev.correct >= 2 ? "#f97316" : "#e63946" }}>{prev.correct}/{prev.total}</div>
+                  </div>
+                )}
+                <button style={S.btn(t.color)}>Start →</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (submitted && score) {
+    const marked = score.correct * 2 - score.wrong * 0.5;
+    return (
+      <div>
+        <button onClick={back} style={{ ...S.btn("#64748b", true), marginBottom: 12 }}>← Back to Tests</button>
+        <div style={S.card(selected.color)}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: selected.color, marginBottom: 14 }}>📊 Result: {selected.title}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8, marginBottom: 14 }}>
+            {[["✅ Correct", score.correct, "#22c55e"], ["❌ Wrong", score.wrong, "#e63946"], ["⏭ Skipped", score.skipped, "#94a3b8"], ["📝 Score", `${marked.toFixed(1)} / ${score.total * 2}`, selected.color]].map(([l, v, c]) => (
+              <div key={l} style={S.statBox(c)}>
+                <div style={{ fontSize: 11, color: "#64748b" }}>{l}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: c }}>{v}</div>
+              </div>
+            ))}
+          </div>
+          {selected.questions.map((q, i) => {
+            const userAns = answers[i];
+            const correct = userAns === q.answer;
+            const skipped = userAns === undefined;
+            return (
+              <div key={i} style={{ ...S.card(skipped ? "#64748b" : correct ? "#22c55e" : "#e63946"), marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, lineHeight: 1.5 }}>Q{i + 1}. {q.q}</div>
+                {q.options.map((o, j) => (
+                  <div key={j} style={{ fontSize: 12, padding: "5px 8px", borderRadius: 6, marginBottom: 4, background: j === q.answer ? "#22c55e22" : (userAns === j && !correct) ? "#e6394622" : "transparent", color: j === q.answer ? "#22c55e" : (userAns === j && !correct) ? "#e63946" : "#94a3b8", border: `1px solid ${j === q.answer ? "#22c55e33" : "transparent"}` }}>
+                    {["A", "B", "C", "D"][j]}. {o} {j === q.answer ? "✓" : (userAns === j && !correct) ? "✗" : ""}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <button onClick={back} style={{ ...S.btn("#64748b", true), marginBottom: 12 }}>← Back</button>
+      <div style={{ ...S.card(selected.color), marginBottom: 12 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: selected.color }}>{selected.title}</div>
+        <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>{Object.keys(answers).length}/{selected.questions.length} answered</div>
+        <LinearBar percent={pct(Object.keys(answers).length, selected.questions.length)} color={selected.color} height={5} />
+      </div>
+      {selected.questions.map((q, i) => (
+        <div key={i} style={{ ...S.card(selected.color), marginBottom: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, lineHeight: 1.5, color: "#e2e8f0" }}>Q{i + 1}. {q.q}</div>
+          {q.options.map((o, j) => {
+            const picked = answers[i] === j;
+            return (
+              <div key={j} onClick={() => choose(i, j)} style={{ fontSize: 13, padding: "9px 12px", borderRadius: 8, marginBottom: 6, cursor: "pointer", background: picked ? `${selected.color}22` : "#0d0d20", border: `1px solid ${picked ? selected.color : "#1e1e3a"}`, color: picked ? selected.color : "#cbd5e1", transition: "all 0.15s" }}>
+                <span style={{ fontWeight: 700, marginRight: 8 }}>{["A", "B", "C", "D"][j]}.</span>{o}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      <button onClick={submit} style={{ ...S.btn(selected.color), width: "100%", padding: "12px", fontSize: 14, fontWeight: 700, borderRadius: 10, marginTop: 4 }}>Submit Test →</button>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MAIN APP
+// ══════════════════════════════════════════════════════════════
+export default function App() {
+  const [progress, setProgress] = useState({});
+  const [mockScores, setMockScores] = useState({});
+  const [loaded, setLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTier, setActiveTier] = useState("Tier 1");
+  const [activeSection, setActiveSection] = useState(null);
+  const [guideTab, setGuideTab] = useState("overview");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const d = loadData();
+    setProgress(d.progress || {});
+    setMockScores(d.mockScores || {});
+    setLoaded(true);
+  }, []);
+
+  const persist = (newProg, newScores) => {
+    setSaving(true);
+    saveData({ progress: newProg, mockScores: newScores });
+    setTimeout(() => setSaving(false), 300);
+  };
+
+  const toggle = (tk, sk, topic) => {
+    const k = `${tk}||${sk}||${topic}`;
+    const np = { ...progress, [k]: !progress[k] };
+    setProgress(np);
+    persist(np, mockScores);
+  };
+
+  const markAllSec = (tk, sk, topics, val) => {
+    const np = { ...progress };
+    topics.forEach(t => { np[`${tk}||${sk}||${t}`] = val; });
+    setProgress(np);
+    persist(np, mockScores);
+  };
+
+  const markAllTier = (tk, tier, val) => {
+    const np = { ...progress };
+    Object.entries(tier.sections).forEach(([sk, s]) => s.topics.forEach(t => { np[`${tk}||${sk}||${t}`] = val; }));
+    setProgress(np);
+    persist(np, mockScores);
+  };
+
+  const saveScore = (id, s) => {
+    const ns = { ...mockScores, [id]: s };
+    setMockScores(ns);
+    persist(progress, ns);
+  };
+
+  let grandTotal = 0, grandDone = 0;
+  const tierStats = {};
+  Object.entries(SYLLABUS).forEach(([tk, tier]) => {
+    const total = countTopics(tier), done = countDone(tier, tk, progress);
+    grandTotal += total; grandDone += done;
+    tierStats[tk] = { total, done, pct: pct(done, total) };
+  });
+
+  // ── DASHBOARD ──
+  const renderDashboard = () => (
+    <div>
+      <div style={{ ...S.card(), display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+        <CircleProgress percent={pct(grandDone, grandTotal)} color="#4361ee" size={88} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>Overall Progress</div>
+          <div style={{ fontSize: 12, color: "#64748b", margin: "3px 0 8px" }}>
+            <span style={{ color: "#4361ee", fontWeight: 700 }}>{grandDone}</span> of {grandTotal} topics completed
+            {saving && <span style={{ marginLeft: 8, color: "#6b7280", fontSize: 11 }}>saving…</span>}
+          </div>
+          <LinearBar percent={pct(grandDone, grandTotal)} color="#4361ee" height={10} />
+          <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
+            <span style={{ fontSize: 12, color: "#22c55e" }}>✓ {grandDone} Done</span>
+            <span style={{ fontSize: 12, color: "#e63946" }}>○ {grandTotal - grandDone} Remaining</span>
+          </div>
+        </div>
+      </div>
+
+      {Object.keys(mockScores).length > 0 && (
+        <div style={S.card("#a855f7")}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#a855f7", marginBottom: 10 }}>🧪 Recent Test Scores</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: 6 }}>
+            {MOCK_TESTS.filter(t => mockScores[t.id]).map(t => {
+              const s = mockScores[t.id];
+              const pct2 = pct(s.correct, s.total);
+              return (
+                <div key={t.id} style={S.statBox(t.color)}>
+                  <div style={{ fontSize: 10, color: "#64748b" }}>{t.title.split(" — ")[1]}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: pct2 >= 80 ? "#22c55e" : pct2 >= 60 ? "#f97316" : "#e63946" }}>{s.correct}/{s.total}</div>
+                  <div style={{ fontSize: 10, color: "#64748b" }}>{pct2}%</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {Object.entries(SYLLABUS).map(([tk, tier]) => {
+        const ts = tierStats[tk];
+        return (
+          <div key={tk} style={S.card(tier.color)}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 6 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: tier.color }}>{tk}</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>{ts.done}/{ts.total} topics</div>
+            </div>
+            <LinearBar percent={ts.pct} color={tier.color} height={8} />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
+              <span style={{ fontSize: 12, color: tier.color, fontWeight: 700 }}>{ts.pct}% complete</span>
+              <span style={{ fontSize: 12, color: "#64748b" }}>{ts.total - ts.done} remaining</span>
+            </div>
+            <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 7 }}>
+              {Object.entries(tier.sections).map(([sk, sec]) => {
+                const sd = sec.topics.filter(t => progress[`${tk}||${sk}||${t}`]).length;
+                return (
+                  <div key={sk}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                      <span style={{ fontSize: 11, color: "#94a3b8" }}>{sk}</span>
+                      <span style={{ fontSize: 11, color: sec.color }}>{sd}/{sec.topics.length}</span>
+                    </div>
+                    <LinearBar percent={pct(sd, sec.topics.length)} color={sec.color} height={4} />
+                  </div>
+                );
+              })}
+            </div>
+            <button onClick={() => { setActiveTier(tk); setActiveTab("tracker"); setActiveSection(null); }}
+              style={{ ...S.btn(tier.color), marginTop: 12, width: "100%" }}>
+              Open {tk} Tracker →
+            </button>
+          </div>
+        );
+      })}
+
+      <div style={{ ...S.card("#6b7280"), padding: "12px 14px" }}>
+        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>⚡ Quick Actions</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={() => setActiveTab("mock")} style={S.btn("#a855f7")}>🧪 Take Mock Test</button>
+          <button onClick={() => setActiveTab("guide")} style={S.btn("#2a9d8f")}>📖 Open Guide</button>
+          <button onClick={() => { if (window.confirm("Reset ALL progress?")) { setProgress({}); persist({}, mockScores); } }}
+            style={S.btn("#e63946", true)}>🗑 Reset</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── TRACKER ──
+  const renderTracker = () => {
+    const tier = SYLLABUS[activeTier], ts = tierStats[activeTier];
+    return (
+      <div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+          {Object.entries(SYLLABUS).map(([tk, t]) => (
+            <button key={tk} onClick={() => { setActiveTier(tk); setActiveSection(null); }}
+              style={{ ...S.btn(t.color, activeTier !== tk), fontWeight: activeTier === tk ? 800 : 600 }}>{tk}</button>
+          ))}
+        </div>
+        <div style={{ ...S.card(tier.color), display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          <CircleProgress percent={ts.pct} color={tier.color} size={68} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: tier.color }}>{activeTier}</div>
+            <div style={{ fontSize: 12, color: "#64748b", margin: "3px 0 7px" }}>{ts.done} of {ts.total} topics done</div>
+            <LinearBar percent={ts.pct} color={tier.color} />
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button onClick={() => markAllTier(activeTier, tier, true)} style={S.btn("#22c55e")}>✓ All</button>
+            <button onClick={() => markAllTier(activeTier, tier, false)} style={S.btn("#e63946", true)}>✗ Reset</button>
+          </div>
+        </div>
+
+        {!activeSection ? (
+          Object.entries(tier.sections).map(([sk, sec]) => {
+            const sd = sec.topics.filter(t => progress[`${activeTier}||${sk}||${t}`]).length;
+            const sp = pct(sd, sec.topics.length);
+            return (
+              <div key={sk} style={{ ...S.card(sec.color), cursor: "pointer" }} onClick={() => setActiveSection(sk)}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: sec.color }}>{sk}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, color: "#64748b" }}>{sd}/{sec.topics.length}</span>
+                    <span style={{ fontSize: 12, color: sp === 100 ? "#22c55e" : "#64748b" }}>{sp === 100 ? "✅ Done" : `${sp}%`}</span>
+                    <span style={{ color: "#64748b" }}>›</span>
+                  </div>
+                </div>
+                <LinearBar percent={sp} color={sec.color} height={5} />
+              </div>
+            );
+          })
+        ) : (() => {
+          const sec = tier.sections[activeSection];
+          const sd = sec.topics.filter(t => progress[`${activeTier}||${activeSection}||${t}`]).length;
+          const sp = pct(sd, sec.topics.length);
+          return (
+            <div>
+              <button onClick={() => setActiveSection(null)} style={{ ...S.btn("#64748b", true), marginBottom: 10 }}>← Back</button>
+              <div style={S.card(sec.color)}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: sec.color }}>{activeSection}</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>{sd}/{sec.topics.length} done · {sp}%</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={() => markAllSec(activeTier, activeSection, sec.topics, true)} style={S.btn("#22c55e")}>✓ All</button>
+                    <button onClick={() => markAllSec(activeTier, activeSection, sec.topics, false)} style={S.btn("#e63946", true)}>✗ Clear</button>
+                  </div>
+                </div>
+                <LinearBar percent={sp} color={sec.color} height={6} />
+                <div style={{ marginTop: 12 }}>
+                  {sec.topics.map(topic => {
+                    const key = `${activeTier}||${activeSection}||${topic}`;
+                    const done = !!progress[key];
+                    return (
+                      <div key={topic} style={S.topicRow(done)} onClick={() => toggle(activeTier, activeSection, topic)}>
+                        <div style={S.checkbox(done, sec.color)}>
+                          {done && <svg width="12" height="12" viewBox="0 0 12 12"><polyline points="1.5,6 5,9.5 10.5,2.5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                        </div>
+                        <span style={{ fontSize: 13, color: done ? "#86efac" : "#cbd5e1", textDecoration: done ? "line-through" : "none", flex: 1 }}>{topic}</span>
+                        {done && <span style={{ fontSize: 11, color: "#22c55e" }}>✓</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    );
+  };
+
+  // ── GUIDE ──
+  const guideTabs = [
+    ["overview", "📊 Overview"], ["tier1", "🔵 Tier 1"], ["tier2", "🟣 Tier 2"], ["formulas", "📐 Formulas"], ["plan", "🗓 Study Plan"],
+  ];
+  const renderGuide = () => (
+    <div>
+      <div style={{ display: "flex", gap: 1, overflowX: "auto", scrollbarWidth: "none", marginBottom: 14, borderBottom: "1px solid #1e1e40", paddingBottom: 0 }}>
+        {guideTabs.map(([id, label]) => (
+          <button key={id} onClick={() => setGuideTab(id)} style={S.tab(guideTab === id)}>{label}</button>
+        ))}
+      </div>
+      {guideTab === "overview" && <GuideOverview />}
+      {guideTab === "tier1" && <GuideTier sections={GUIDE.tier1.sections} />}
+      {guideTab === "tier2" && <GuideTier sections={GUIDE.tier2.papers} />}
+      {guideTab === "formulas" && <GuideFormulas />}
+      {guideTab === "plan" && <GuideStudyPlan />}
+    </div>
+  );
+
+  if (!loaded) return (
+    <div style={{ ...S.app, display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <div style={{ color: "#4361ee", fontSize: 14 }}>Loading your progress…</div>
+    </div>
+  );
+
+  const mainTabs = [
+    ["dashboard", "📊 Dashboard"], ["tracker", "✅ Tracker"], ["guide", "📖 Guide"], ["mock", "🧪 Mock Tests"], ["timer", "⏱ Study Timer"],
+  ];
+
+  return (
+    <div style={S.app}>
+      <div style={S.header}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h1 style={S.title}>SSC CGL Prep Hub</h1>
+          <div style={{ fontSize: 12, color: grandDone === grandTotal && grandTotal > 0 ? "#22c55e" : "#4361ee", fontWeight: 700 }}>
+            {grandDone}/{grandTotal}
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: "#475569", marginTop: 2 }}>Tier 1 + Tier 2 Paper I · Progress auto-saves</div>
+        <div style={S.tabs}>
+          {mainTabs.map(([id, label]) => (
+            <button key={id} onClick={() => setActiveTab(id)} style={S.tab(activeTab === id)}>{label}</button>
+          ))}
+        </div>
+      </div>
+      <div style={S.content}>
+        {activeTab === "dashboard" && renderDashboard()}
+        {activeTab === "tracker" && renderTracker()}
+        {activeTab === "guide" && renderGuide()}
+        {activeTab === "mock" && <MockTest scores={mockScores} onScoreSaved={saveScore} />}
+        {activeTab === "timer" && <StudyTimer />}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
