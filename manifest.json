@@ -2,7 +2,7 @@
   "name": "SSC CGL Prep Hub",
   "short_name": "CGL Prep",
   "description": "SSC CGL Tier 1 + Tier 2 Study Tracker & Guide",
-  "start_url": "./index.html",
+  "start_url": "./ssc_cgl_hub.html",
   "display": "standalone",
   "background_color": "#0a0a18",
   "theme_color": "#4361ee",
