@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#070714"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Exam Hub"/>
+<link rel="apple-touch-icon" href="icon.png"/>
+<link rel="icon" type="image/png" href="icon.png"/>
+<title>Exam Prep Hub</title>
+<style>
+:root{
+  --bg:#070714;--bg2:#0d0d22;--bg3:var(--bg3);--bg4:var(--border);
+  --border:var(--border);--border2:var(--border2);
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --nav-bg:var(--nav-bg);
+}
+body.light{
+  --bg:#f0f4ff;--bg2:#ffffff;--bg3:#f8faff;--bg4:#e8edf5;
+  --border:#dde3f0;--border2:#c8d0e0;
+  --text:#1e293b;--text2:#475569;--text3:#94a3b8;
+  --nav-bg:#ffffff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;transition:background .3s,color .3s}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+input,textarea,select{font-family:inherit}
+::-webkit-scrollbar{display:none}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;position:relative}
+#screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:80px}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--nav-bg);border-top:1px solid #1e1e40;display:flex;z-index:200;padding:6px 0 max(6px,env(safe-area-inset-bottom))}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;background:transparent;border:none;cursor:pointer;transition:all .15s}
+.nav-icon{font-size:20px;line-height:1;transition:transform .2s}
+.nav-label{font-size:10px;color:var(--text3);font-weight:500;transition:color .15s}
+.nav-btn.active .nav-icon{transform:scale(1.15)}
+.nav-btn.active .nav-label{color:#4361ee;font-weight:700}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.card-sm{background:var(--bg2);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
+.glass{background:rgba(13,13,34,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+
+/* ── TYPOGRAPHY ── */
+.h1{font-size:22px;font-weight:900;line-height:1.2}
+.h2{font-size:17px;font-weight:800}
+.h3{font-size:14px;font-weight:700}
+.body{font-size:13px;line-height:1.5}
+.caption{font-size:11px;color:var(--text3)}
+.muted{color:var(--text3)}
+
+/* ── BUTTONS ── */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;border:none;transition:all .15s;background:linear-gradient(135deg,var(--c,#4361ee),var(--c2,#7b2ff7));color:#fff}
+.btn-primary:active{transform:scale(0.97)}
+.btn-outline{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--c,#4361ee);background:var(--c,#4361ee)15;color:var(--c,#4361ee);transition:all .15s}
+.btn-ghost{padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:transparent;color:#64748b;transition:all .15s}
+.btn-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border2);background:var(--bg2);cursor:pointer;font-size:18px;transition:all .15s}
+
+/* ── PROGRESS ── */
+.bar-track{background:var(--border);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .6s ease}
+
+/* ── GRID ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* ── STAT BOX ── */
+.stat{border-radius:12px;padding:12px 10px;text-align:center}
+.stat-val{font-size:20px;font-weight:900;line-height:1.1}
+.stat-lbl{font-size:10px;color:#64748b;margin-top:3px}
+.stat-sub{font-size:10px;margin-top:2px}
+
+/* ── TOPIC ROW ── */
+.topic-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;margin-bottom:5px;cursor:pointer;border:1px solid var(--border);transition:all .15s;background:#0a0a1a}
+.topic-row.done{background:#071a0f;border-color:#22c55e30}
+.topic-row:active{transform:scale(0.98)}
+.chk{width:22px;height:22px;border-radius:7px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.chk.done{border-color:var(--c,#22c55e);background:var(--c,#22c55e)}
+
+/* ── EXAM HUB ── */
+.hub-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.exam-card{background:var(--bg2);border-radius:16px;padding:14px 12px;cursor:pointer;border:1px solid var(--border);position:relative;overflow:hidden;transition:all .2s}
+.exam-card:active{transform:scale(0.96)}
+.exam-card .glow{position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px}
+.cat-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin:18px 0 8px 2px}
+
+/* ── MISC ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.tag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600}
+.running-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.sw-display{font-size:56px;font-weight:900;font-family:'Courier New',monospace;letter-spacing:3px;text-align:center}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:#000000cc;z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.modal-box{background:var(--bg2);border-radius:24px 24px 0 0;padding:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+
+/* ── INPUT ── */
+input[type=text],input[type=number],input[type=date],textarea{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;color:#e2e8f0;font-size:14px;width:100%;outline:none;transition:border .15s}
+input:focus,textarea:focus{border-color:#4361ee}
+textarea{resize:none;line-height:1.5}
+select{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:#e2e8f0;font-size:13px;width:100%;outline:none}
+.input-label{font-size:11px;color:#64748b;margin-bottom:5px;font-weight:600}
+
+/* ── HEATMAP ── */
+.heatmap{display:flex;gap:3px;flex-wrap:wrap}
+.heatmap-cell{width:14px;height:14px;border-radius:3px;cursor:default;transition:background .3s}
+
+/* ── DIFFICULTY CHIPS ── */
+.diff-chip{padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;border:1px solid transparent}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid #4361ee44;padding:10px 18px;border-radius:12px;font-size:13px;color:#e2e8f0;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screen"></div>
+  <nav id="nav" style="display:none">
+    <button class="nav-btn" data-tab="home" onclick="setTab('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" data-tab="study" onclick="setTab('study')">
+      <span class="nav-icon">⏱</span>
+      <span class="nav-label">Study</span>
+    </button>
+    <button class="nav-btn" data-tab="progress" onclick="setTab('progress')">
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Progress</span>
+    </button>
+    <button class="nav-btn" data-tab="tests" onclick="setTab('tests')">
+      <span class="nav-icon">🧪</span>
+      <span class="nav-label">Tests</span>
+    </button>
+    <button class="nav-btn" data-tab="more" onclick="setTab('more')">
+      <span class="nav-icon">☰</span>
+      <span class="nav-label">More</span>
+    </button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// ══════════════════════════════════════════════
+// EXAM REGISTRY
+// ══════════════════════════════════════════════
+const REGISTRY=[
+  {cat:"🏛️ Civil Services",exams:[
+    {id:"upsc_cse",name:"UPSC CSE",sub:"IAS/IPS/IFS",color:"#dc2626",icon:"🏛️",full:true},
+    {id:"upsc_capf",name:"UPSC CAPF",sub:"AC Post",color:"#b91c1c",icon:"🛡️",full:false},
+    {id:"state_psc",name:"State PSC",sub:"PCS/RAS/KAS",color:"#991b1b",icon:"🗺️",full:false}
+  ]},
+  {cat:"📊 SSC Exams",exams:[
+    {id:"ssc_cgl",name:"SSC CGL",sub:"Tier 1+2",color:"#4361ee",icon:"📊",full:true},
+    {id:"ssc_chsl",name:"SSC CHSL",sub:"10+2 Level",color:"#3730a3",icon:"📋",full:false},
+    {id:"ssc_cpo",name:"SSC CPO",sub:"SI/ASI",color:"#312e81",icon:"👮",full:false},
+    {id:"ssc_mts",name:"SSC MTS",sub:"Multi Tasking",color:"#1e1b4b",icon:"📁",full:false}
+  ]},
+  {cat:"🚂 Railway",exams:[
+    {id:"rrb_ntpc",name:"RRB NTPC",sub:"Non-Technical",color:"#059669",icon:"🚂",full:true},
+    {id:"rrb_groupd",name:"RRB Group D",sub:"Level 1",color:"#047857",icon:"🔧",full:false},
+    {id:"rrb_je",name:"RRB JE",sub:"Junior Engineer",color:"#065f46",icon:"⚙️",full:false}
+  ]},
+  {cat:"🏦 Banking",exams:[
+    {id:"ibps_po",name:"IBPS PO",sub:"Probationary Officer",color:"#d97706",icon:"🏦",full:true},
+    {id:"ibps_clerk",name:"IBPS Clerk",sub:"Clerical",color:"#b45309",icon:"💳",full:false},
+    {id:"sbi_po",name:"SBI PO",sub:"State Bank PO",color:"#92400e",icon:"🏧",full:false},
+    {id:"sbi_clerk",name:"SBI Clerk",sub:"Junior Associate",color:"#78350f",icon:"📒",full:false},
+    {id:"rbi",name:"RBI Grade B",sub:"Reserve Bank",color:"#f59e0b",icon:"💰",full:false}
+  ]},
+  {cat:"🛡️ Defence",exams:[
+    {id:"nda",name:"NDA",sub:"National Defence",color:"#16a34a",icon:"⚔️",full:false},
+    {id:"cds",name:"CDS",sub:"Combined Defence",color:"#15803d",icon:"🎖️",full:false},
+    {id:"afcat",name:"AFCAT",sub:"Air Force",color:"#166534",icon:"✈️",full:false},
+    {id:"agniveer",name:"Agniveer",sub:"Agnipath",color:"#14532d",icon:"🔥",full:false}
+  ]},
+  {cat:"📚 Teaching",exams:[
+    {id:"ctet",name:"CTET",sub:"Central TET",color:"#7c3aed",icon:"🎓",full:false},
+    {id:"dsssb",name:"DSSSB",sub:"Delhi Subordinate",color:"#6d28d9",icon:"🏫",full:false},
+    {id:"kvs",name:"KVS",sub:"Kendriya Vidyalaya",color:"#5b21b6",icon:"📖",full:false}
+  ]},
+  {cat:"⚖️ Law & MBA",exams:[
+    {id:"clat",name:"CLAT",sub:"Law Entrance",color:"#0891b2",icon:"⚖️",full:false},
+    {id:"cat",name:"CAT/MBA",sub:"IIM Entrance",color:"#0e7490",icon:"📈",full:false},
+    {id:"judiciary",name:"Judiciary",sub:"Civil Judge",color:"#155e75",icon:"🏛️",full:false}
+  ]},
+  {cat:"🔬 Engineering",exams:[
+    {id:"gate",name:"GATE",sub:"Grad Aptitude",color:"#ea580c",icon:"🔬",full:false},
+    {id:"ese",name:"ESE/IES",sub:"Engg Services",color:"#c2410c",icon:"⚙️",full:false},
+    {id:"isro",name:"ISRO",sub:"Space Research",color:"#9a3412",icon:"🚀",full:false},
+    {id:"drdo",name:"DRDO",sub:"Defence R&D",color:"#7c2d12",icon:"🧪",full:false}
+  ]},
+  {cat:"🩺 Medical & School",exams:[
+    {id:"neet",name:"NEET UG",sub:"Medical Entrance",color:"#db2777",icon:"🩺",full:true},
+    {id:"pg_neet",name:"NEET PG",sub:"PG Medical",color:"#be123c",icon:"🏥",full:true},
+    {id:"jee",name:"JEE Main/Adv",sub:"Engineering",color:"#be185d",icon:"⚡",full:true},
+    {id:"cuet",name:"CUET",sub:"Central Uni",color:"#9d174d",icon:"🎓",full:false},
+    {id:"school",name:"Class 6-12",sub:"CBSE/ICSE",color:"#831843",icon:"📚",full:false}
+  ]},
+  {cat:"💼 Professional",exams:[
+    {id:"ca",name:"CA",sub:"Chartered Accountant",color:"#0284c7",icon:"💼",full:false},
+    {id:"cs",name:"CS/CMA",sub:"Company Secretary",color:"#0369a1",icon:"📑",full:false},
+    {id:"cfa",name:"CFA/ACCA",sub:"Finance Certs",color:"#075985",icon:"📊",full:false},
+    {id:"digital",name:"Digital Marketing",sub:"SEO/Social",color:"#0c4a6e",icon:"📱",full:false},
+    {id:"coding",name:"Coding/Data Science",sub:"Programming",color:"#164e63",icon:"💻",full:false}
+  ]}
+];
+// ══════════════════════════════════════════════
+// EXAM DATA (condensed — reusing from previous)
+// ══════════════════════════════════════════════
+const EDATA={};
+
+EDATA.ssc_cgl={name:"SSC CGL",color:"#4361ee",icon:"📊",
+info:{Mode:"CBT Online","Tier 1":"100 Qs / 200M / 60 min","Tier 2":"150 Qs / 450M / 150 min",Negative:"-0.5 (T1) / -1 (T2)"},
+syllabus:{
+  "Tier 1":{color:"#4361ee",sections:{
+    "General Intelligence & Reasoning":{color:"#e63946",topics:["Analogies Verbal & Non-Verbal","Number & Letter Series","Figural Series","Coding & Decoding","Blood Relations","Direction & Distance","Syllogism","Matrix & Odd One Out","Venn Diagrams","Paper Folding & Cutting","Mirror & Water Image","Embedded Figures","Ranking & Order","Calendar & Clock","Statement & Conclusion"]},
+    "General Awareness":{color:"#2a9d8f",topics:["Ancient History","Medieval History","Modern History & Freedom Struggle","Indian Polity & Constitution","Indian Geography Physical","Indian Geography Economic","World Geography","Indian Economy","Biology Human Body","Biology Plant Kingdom","Chemistry","Physics","Current Affairs","Science & Technology","Sports & Awards","Books & Authors","Important Days","Static GK"]},
+    "Quantitative Aptitude":{color:"#e9c46a",topics:["Number System","Simplification","Percentage","Ratio & Proportion","Average","Simple Interest","Compound Interest","Profit Loss & Discount","Time Speed Distance","Boats & Streams","Time & Work","Pipes & Cisterns","Mixture & Alligation","Algebra & Identities","Geometry Triangles","Geometry Circles","Geometry Polygons","Mensuration 2D","Mensuration 3D","Trigonometry","Data Interpretation"]},
+    "English Comprehension":{color:"#457b9d",topics:["Synonyms & Antonyms","Idioms & Phrases","One Word Substitution","Error Spotting","Sentence Correction","Fill in the Blanks","Spelling Correction","Active & Passive Voice","Direct & Indirect Speech","Para-jumble","Cloze Test","Reading Comprehension"]}
+  }},
+  "Tier 2":{color:"#7b2ff7",sections:{
+    "Mathematical Abilities":{color:"#e63946",topics:["Advanced Algebra","Advanced Geometry","Advanced Trigonometry","Mensuration 3D Advanced","DI Tables","DI Charts","DI Caselet"]},
+    "English Language":{color:"#457b9d",topics:["Advanced Vocabulary","RC Passages x4","Error Spotting Advanced","Cloze Test Advanced","Para-jumble Complex"]},
+    "General Awareness":{color:"#2a9d8f",topics:["Economy & Budget","RBI & Monetary Policy","Polity Advanced","Current Affairs Deep"]},
+    "Computer Knowledge":{color:"#f4a261",topics:["MS Word","MS Excel","MS PowerPoint","Networking Basics","OS Basics","Cyber Security"]}
+  }}
+},
+questions:{
+  "Reasoning":[
+    {q:"Find the odd one out: 17,23,37,51,53",ops:["23","37","51","53"],a:2},
+    {q:"Series: 2,6,12,20,30,?",ops:["40","42","44","46"],a:1},
+    {q:"ABCD:ZYXW :: EFGH:?",ops:["VUTR","VUTS","WVUT","TSRQ"],a:1},
+    {q:"A is brother of B, B is sister of C, C is father of D. A related to D?",ops:["Uncle","Father","Brother","Grandfather"],a:0},
+    {q:"Complete: AZ,BY,CX,?",ops:["DW","EV","DU","EW"],a:0},
+    {q:"Odd one out: 8,27,64,100,125",ops:["8","27","100","125"],a:2},
+    {q:"Series: 1,4,9,16,25,?",ops:["30","36","49","64"],a:1},
+    {q:"Mirror image: clock shows 3:00, mirror shows?",ops:["9:00","3:00","6:00","12:00"],a:0},
+    {q:"A walks 5km N, turns right 3km, turns right 5km. Distance from start?",ops:["1km","3km","5km","8km"],a:1},
+    {q:"Coding: TRAIN=45671, RAIN=?",ops:["4567","5671","4671","5761"],a:2},
+    {q:"Series: 3,9,27,81,?",ops:["162","243","324","729"],a:1},
+    {q:"Syllogism: All dogs are animals. All animals have legs. All dogs have legs?",ops:["True","False","Uncertain","Partial"],a:0},
+    {q:"Analogy: Book:Library :: Painting:?",ops:["Artist","Gallery","Canvas","Museum"],a:1},
+    {q:"Facing North, turn right 90°, right 90° again. Now facing?",ops:["North","South","East","West"],a:1},
+    {q:"Odd one out: Square,Rectangle,Triangle,Cube",ops:["Square","Rectangle","Triangle","Cube"],a:3}
+  ],
+  "Quantitative Aptitude":[
+    {q:"CP=₹800, profit=25%. SP=?",ops:["₹900","₹950","₹1000","₹1050"],a:2},
+    {q:"(a+b)²=49, ab=6. a²+b²=?",ops:["37","39","41","43"],a:0},
+    {q:"Train 150m passes pole in 15s. Speed km/h?",ops:["36","54","72","90"],a:0},
+    {q:"sin²30°+cos²45°+tan²60°=?",ops:["3","2.25","2.75","3.25"],a:2},
+    {q:"Pipes A(10h) B(15h). Together?",ops:["5h","6h","7h","8h"],a:1},
+    {q:"SI on ₹2000 @5% for 3 years?",ops:["₹250","₹300","₹350","₹400"],a:1},
+    {q:"Number increased 20%=480. Number?",ops:["380","400","420","360"],a:1},
+    {q:"cos60°×tan45°=?",ops:["1","0.5","√3/2","√2"],a:1},
+    {q:"Area of circle r=7 (π=22/7)?",ops:["154","144","132","164"],a:0},
+    {q:"LCM of 12,18,24?",ops:["48","72","36","96"],a:1},
+    {q:"Volume of cube side=5cm?",ops:["75","100","125","150"],a:2},
+    {q:"CI on ₹1000 @10% for 2 years?",ops:["₹200","₹210","₹220","₹205"],a:1},
+    {q:"Profit% when CP=₹150, SP=₹180?",ops:["15%","20%","25%","30%"],a:1},
+    {q:"Diagonal of rectangle 12×5=?",ops:["11","12","13","14"],a:2},
+    {q:"If x+1/x=5, x²+1/x²=?",ops:["23","25","27","21"],a:0}
+  ],
+  "English":[
+    {q:"Synonym of EPHEMERAL:",ops:["Permanent","Transient","Eternal","Durable"],a:1},
+    {q:"Antonym of LOQUACIOUS:",ops:["Talkative","Verbose","Taciturn","Garrulous"],a:2},
+    {q:"One Word: Unable to pay debts:",ops:["Insolvent","Creditor","Debtor","Pauper"],a:0},
+    {q:"Idiom 'Beat around the bush':",ops:["Trim plants","Avoid main point","Work hard","Play outside"],a:1},
+    {q:"Fill: The committee _____ its decision yesterday.",ops:["announce","announced","has announced","announcing"],a:1},
+    {q:"Synonym of AMELIORATE:",ops:["Worsen","Improve","Maintain","Destroy"],a:1},
+    {q:"Active: 'The letter was written by him.'",ops:["He writes","He wrote the letter","He had written","He will write"],a:1},
+    {q:"Antonym of FRUGAL:",ops:["Thrifty","Spendthrift","Careful","Miserly"],a:1},
+    {q:"Correct spelling:",ops:["Accomodate","Accommodate","Acomodate","Acommodate"],a:1},
+    {q:"Synonym of TACIT:",ops:["Spoken","Implicit","Loud","Direct"],a:1},
+    {q:"Idiom 'Burn midnight oil':",ops:["Work late","Waste resources","Start fire","Cook food"],a:0},
+    {q:"Antonym of INDIGENOUS:",ops:["Native","Local","Foreign","Regional"],a:2},
+    {q:"One Word: Person who hates mankind:",ops:["Misanthrope","Philanthropist","Altruist","Humanist"],a:0},
+    {q:"Synonym of VERBOSE:",ops:["Concise","Wordy","Silent","Clear"],a:1},
+    {q:"Fill: She _____ to the market yesterday.",ops:["go","goes","went","gone"],a:2}
+  ],
+  "General Awareness":[
+    {q:"Article 14 deals with?",ops:["Right to Education","Right to Equality","Right to Speech","Right to Life"],a:1},
+    {q:"Palk Strait separates India from?",ops:["Bangladesh","Myanmar","Sri Lanka","Maldives"],a:2},
+    {q:"Greenhouse effect gas?",ops:["Oxygen","Nitrogen","CO2","Hydrogen"],a:2},
+    {q:"Discovery of India written by?",ops:["Gandhi","Nehru","Patel","Ambedkar"],a:1},
+    {q:"First Five-Year Plan launched in?",ops:["1947","1950","1951","1952"],a:2},
+    {q:"Insulin produced by?",ops:["Liver","Kidney","Pancreas","Heart"],a:2},
+    {q:"Vitamin D produced by?",ops:["Vit A food","Vit B food","Vit C food","Sunlight exposure"],a:3},
+    {q:"RBI Headquarters?",ops:["Delhi","Kolkata","Mumbai","Chennai"],a:2},
+    {q:"National Animal of India?",ops:["Lion","Elephant","Tiger","Leopard"],a:2},
+    {q:"Battle of Plassey fought in?",ops:["1757","1761","1764","1775"],a:0},
+    {q:"Which planet is Red Planet?",ops:["Venus","Saturn","Jupiter","Mars"],a:3},
+    {q:"Quit India Movement launched in?",ops:["1940","1942","1944","1946"],a:1},
+    {q:"Father of Indian Constitution?",ops:["Nehru","Rajendra Prasad","B.R. Ambedkar","Sardar Patel"],a:2},
+    {q:"Longest river in India?",ops:["Yamuna","Godavari","Ganga","Brahmaputra"],a:2},
+    {q:"Parliament of India has how many houses?",ops:["1","2","3","4"],a:1}
+  ]
+},
+strategy:["Tier 1 is qualifying only — Tier 2 marks count for final merit","Reasoning + English = easiest sections, target 90%+ accuracy","Quant: Algebra + Geometry + Trigonometry = 44% of section","GA: Static GK + Current Affairs = 52% of section","Attempt 95+ questions in Tier 1 within 60 minutes","Tier 2 English (135M) is highest weighted — dont neglect it","NCERT 6-10 is base for GA","Practice 50+ mock tests before exam","Focus on speed: 36 seconds per question in Tier 1","Previous year papers are the best resource"]
+};
+
+EDATA.upsc_cse={name:"UPSC CSE",color:"#dc2626",icon:"🏛️",
+info:{Mode:"Offline OMR+Written",Prelims:"200 Qs/400M/2 Papers",Mains:"9 Papers/~1750M",Interview:"275M"},
+syllabus:{
+  "Prelims":{color:"#dc2626",sections:{
+    "General Studies Paper 1":{color:"#e63946",topics:["Indian History Ancient","Indian History Medieval","Indian History Modern & Freedom Struggle","Indian Geography Physical","Indian Geography Economic","World Geography","Indian Polity & Governance","Indian Economy","General Science Biology","General Science Physics & Chemistry","Environment & Ecology","Current Affairs & Events"]},
+    "CSAT Paper 2":{color:"#f97316",topics:["Reading Comprehension","Logical Reasoning","Analytical Ability","General Mental Ability","Basic Numeracy","Data Interpretation","Decision Making"]}
+  }},
+  "Mains GS":{color:"#b91c1c",sections:{
+    "GS Paper 1":{color:"#dc2626",topics:["Indian Heritage & Culture","Modern Indian History","World History","Indian Society","Geography of World & India"]},
+    "GS Paper 2":{color:"#e63946",topics:["Indian Constitution","Governance & Public Policy","Social Justice","International Relations","India & World Affairs"]},
+    "GS Paper 3":{color:"#f97316",topics:["Indian Economy & Development","Agriculture","Science & Technology","Environment","Disaster Management","Security Issues"]},
+    "GS Paper 4 Ethics":{color:"#f59e0b",topics:["Ethics Integrity & Aptitude","Attitude & Values","Public Administration Ethics","Case Studies in Ethics"]},
+    "Essay Paper":{color:"#a855f7",topics:["Essay Writing 2 essays 250M each","Essay Techniques","Current Affairs Essays","Philosophical Essays"]}
+  }},
+  "Optional Subject":{color:"#7c3aed",sections:{
+    "Choose Your Optional":{color:"#7c3aed",topics:["History","Geography","Public Administration","Sociology","Political Science","Economics","Anthropology","Psychology","Philosophy","Mathematics","Literature any language"]}
+  }}
+},
+questions:{
+  "General Studies":[
+    {q:"Which Constitutional Amendment introduced GST?",ops:["99th","100th","101st","102nd"],a:2},
+    {q:"Directive Principles borrowed from?",ops:["USA","UK","Ireland","Australia"],a:2},
+    {q:"Who wrote Arthashastra?",ops:["Valmiki","Kautilya","Kalidasa","Manu"],a:1},
+    {q:"Fundamental Duties added by which amendment?",ops:["42nd","44th","45th","46th"],a:0},
+    {q:"Rowlatt Act 1919 was related to?",ops:["Press freedom","Preventive detention","Labour rights","Land reforms"],a:1},
+    {q:"Article 356 deals with?",ops:["Emergency due to war","Presidents rule in states","Financial emergency","Armed forces"],a:1},
+    {q:"Blue Revolution is associated with?",ops:["Milk production","Fish production","Water conservation","Sky research"],a:1},
+    {q:"Paris Agreement is related to?",ops:["Trade","Climate Change","Nuclear non-proliferation","Terrorism"],a:1},
+    {q:"CRISPR technology is associated with?",ops:["Space exploration","Gene editing","Nuclear energy","Quantum computing"],a:1},
+    {q:"Panchsheel first used in?",ops:["1950","1954","1955","1961"],a:1},
+    {q:"8th Schedule of Constitution deals with?",ops:["States","Panchayats","Languages","Tribes"],a:2},
+    {q:"National Human Rights Commission established in?",ops:["1990","1991","1993","1995"],a:2},
+    {q:"Project Tiger launched in?",ops:["1970","1971","1972","1973"],a:3},
+    {q:"Green Revolution was mainly for?",ops:["Rice only","Wheat and Rice","All crops","Cash crops"],a:1},
+    {q:"Which river is called Dakshin Ganga?",ops:["Krishna","Godavari","Kaveri","Mahanadi"],a:1}
+  ],
+  "CSAT":[
+    {q:"6 workers complete job in 8 days. 12 workers complete in?",ops:["4 days","3 days","6 days","2 days"],a:0},
+    {q:"Train travels 360km in 4 hours. Speed in m/s?",ops:["20","25","30","35"],a:1},
+    {q:"Next in series: 2,3,5,8,13,21,?",ops:["28","32","34","35"],a:2},
+    {q:"Man spends 75% of income. Income increases 20%, expenses 10%. Savings increase by?",ops:["25%","37.5%","50%","62.5%"],a:2},
+    {q:"Odd one out: 2,5,10,17,26,37,50,64",ops:["26","37","50","64"],a:3},
+    {q:"Shopkeeper gives 10% discount. Still 20% profit. CP:MP ratio?",ops:["3:4","2:3","4:5","3:5"],a:0},
+    {q:"Sun rises East, I face North. My shadow falls?",ops:["South","North","East","West"],a:3},
+    {q:"All books are papers. Some papers are pens. Some books are pens?",ops:["True","False","Maybe","Insufficient"],a:1},
+    {q:"If A>B, B>C, C>D. Definitely smallest?",ops:["A","B","C","D"],a:3},
+    {q:"Series: 1,1,2,3,5,8,13,?",ops:["18","19","20","21"],a:3},
+    {q:"A is 2 ranks above B. B is 5 below C. C is rank 10. A is?",ops:["7","8","13","17"],a:0},
+    {q:"Average of 5 consecutive odd numbers is 25. Largest is?",ops:["27","29","31","33"],a:1},
+    {q:"A does work in 12 days, B in 18, C in 24. Together?",ops:["4 days","5 days","6 days","8 days"],a:1},
+    {q:"2 pipes fill tank in 6h and 8h. Drain in 12h. All open simultaneously?",ops:["16h","18h","20h","24h"],a:3},
+    {q:"Speed downstream 15kmph, upstream 9kmph. Boat speed?",ops:["10","11","12","13"],a:2}
+  ]
+},
+strategy:["UPSC CSE is 3-stage: Prelims then Mains then Interview","Prelims GS: NCERT 6-12 is the foundation","CSAT is qualifying (33% cutoff) dont ignore it","Mains GS: Answer writing practice is more important than reading","Start answer writing practice from Day 1","Optional subject: choose based on interest + GS overlap","Newspaper reading (The Hindu/IE) is non-negotiable","Minimum 12-15 months dedicated preparation required","Previous year questions (PYQs) are most important resource","Ethics (GS4) is scoring — practice case studies daily"]
+};
+
+EDATA.rrb_ntpc={name:"RRB NTPC",color:"#059669",icon:"🚂",
+info:{Mode:"CBT Online","Stage 1":"100 Qs/100M/90min","Stage 2":"120 Qs/120M/90min",Negative:"-1/3 per wrong"},
+syllabus:{
+  "CBT Stage 1":{color:"#059669",sections:{
+    "Mathematics":{color:"#e9c46a",topics:["Number System","Decimals & Fractions","LCM & HCF","Ratio & Proportion","Percentage","Mensuration","Time & Work","Time Speed Distance","Simple & Compound Interest","Profit & Loss","Elementary Algebra","Geometry & Trigonometry","Elementary Statistics"]},
+    "General Intelligence & Reasoning":{color:"#e63946",topics:["Analogies","Number Series Completion","Coding & Decoding","Mathematical Operations","Similarities & Differences","Relationships","Analytical Reasoning","Syllogism","Jumbling","Venn Diagrams","Data Interpretation","Statement-Conclusion"]},
+    "General Awareness":{color:"#2a9d8f",topics:["Current Events","Indian Geography","Indian History","Indian Art & Culture","Indian Economy","Indian Polity","Indian Railways GK","Environment","Science & Technology","Sports & Games","General Science"]}
+  }},
+  "CBT Stage 2":{color:"#047857",sections:{
+    "Mathematics Advanced":{color:"#e9c46a",topics:["Advanced Number Theory","Statistics & Probability","Coordinate Geometry","Advanced Mensuration","Data Sufficiency"]},
+    "Reasoning Advanced":{color:"#e63946",topics:["Advanced Reasoning","Critical Thinking","Problem Solving","Decision Making"]},
+    "General Awareness Advanced":{color:"#2a9d8f",topics:["Current Affairs last 12 months","Indian Railways Detailed","National & International GK","Science & Technology Advanced"]}
+  }}
+},
+questions:{
+  "Mathematics":[
+    {q:"LCM of 15,20,25?",ops:["100","150","300","200"],a:2},
+    {q:"15 men do job in 12 days, 20 men do it in?",ops:["7","8","9","10"],a:2},
+    {q:"Speed 60km/h. Distance in 2.5 hours?",ops:["120km","150km","180km","200km"],a:1},
+    {q:"Principal ₹5000, Rate 10%pa, SI for 2 years?",ops:["₹800","₹900","₹1000","₹1200"],a:2},
+    {q:"Area of triangle base=10m, height=6m?",ops:["30m²","60m²","40m²","50m²"],a:0},
+    {q:"Profit% when CP=₹150, SP=₹180?",ops:["15%","20%","25%","30%"],a:1},
+    {q:"√196=?",ops:["12","13","14","15"],a:2},
+    {q:"x+y=10, xy=21. x²+y²=?",ops:["48","52","58","62"],a:2},
+    {q:"tan45°+cot45°=?",ops:["0","1","2","√2"],a:2},
+    {q:"Volume of cube side=5cm?",ops:["75","100","125","150"],a:2},
+    {q:"CI on ₹8000 at 10% for 2 years?",ops:["₹1600","₹1640","₹1680","₹1720"],a:2},
+    {q:"Average of 1 to 20?",ops:["9.5","10","10.5","11"],a:2},
+    {q:"If 3x+7=28, x=?",ops:["5","6","7","8"],a:2},
+    {q:"Ratio 3:5, sum=40. Smaller number?",ops:["12","15","18","20"],a:1},
+    {q:"Speed 90km/h in m/s?",ops:["20","25","30","35"],a:1}
+  ],
+  "General Awareness":[
+    {q:"Indian Railways HQ?",ops:["Mumbai","Delhi","Kolkata","Chennai"],a:1},
+    {q:"First railway in India (1853)?",ops:["Delhi-Agra","Mumbai-Thane","Kolkata-Howrah","Chennai-Bangalore"],a:1},
+    {q:"Fastest train in India?",ops:["Rajdhani","Shatabdi","Vande Bharat","Gatimaan"],a:2},
+    {q:"Railway Budget merged with General Budget in?",ops:["2015","2016","2017","2018"],a:2},
+    {q:"Largest zone in Indian Railways?",ops:["Central","Northern","Western","North Eastern"],a:1},
+    {q:"Indias first metro rail?",ops:["Mumbai","Delhi","Kolkata","Chennai"],a:2},
+    {q:"Konkan Railway connects?",ops:["Mumbai-Goa","Goa-Mangalore","Mumbai-Mangalore","Pune-Goa"],a:2},
+    {q:"Mission Raftaar relates to?",ops:["Road safety","Railway speed","River transport","Air travel"],a:1},
+    {q:"First bullet train corridor in India?",ops:["Delhi-Mumbai","Mumbai-Ahmedabad","Delhi-Kolkata","Chennai-Bangalore"],a:1},
+    {q:"National Rail & Transportation Institute is in?",ops:["Mumbai","Delhi","Vadodara","Pune"],a:2},
+    {q:"Rajdhani Express first started in?",ops:["1969","1970","1971","1972"],a:0},
+    {q:"Total railway zones in India?",ops:["16","17","18","19"],a:2},
+    {q:"Project Vistadome relates to?",ops:["Smart cities","Railway coaches","Airports","Highways"],a:1},
+    {q:"Indian Railways slogan?",ops:["Lifeline of Nation","Moving India","Rail India","Connect India"],a:0},
+    {q:"Indian Railways world rank by size?",ops:["2nd","3rd","4th","5th"],a:2}
+  ],
+  "Reasoning":[
+    {q:"Series: 3,6,11,18,27,?",ops:["36","38","40","42"],a:2},
+    {q:"Odd one out: 11,13,17,19,21,23",ops:["19","21","23","17"],a:1},
+    {q:"South becomes East, North becomes?",ops:["South","West","East","North"],a:1},
+    {q:"Complete: CMM,EOO,GQQ,?",ops:["ISS","HRR","IRT","JST"],a:0},
+    {q:"As mother is B. Bs son is C. C related to A?",ops:["Brother","Son","Nephew","Uncle"],a:0},
+    {q:"Book:Library :: Painting:?",ops:["Artist","Gallery","Canvas","Museum"],a:1},
+    {q:"Series: 1,8,27,64,?",ops:["100","121","125","144"],a:2},
+    {q:"Facing North, turn right 90 twice. Now facing?",ops:["North","South","East","West"],a:1},
+    {q:"All cats are dogs. All dogs are animals. All cats are?",ops:["Dogs only","Animals","Neither","Both dogs and animals"],a:3},
+    {q:"DCBA is to ABCD as NMLK is to?",ops:["KLMN","LMNO","MNOP","JKLM"],a:0},
+    {q:"Series: 2,4,12,48,240,?",ops:["960","1200","1440","1680"],a:2},
+    {q:"Coding: MANGO=NBOHP. APPLE=?",ops:["BQQMF","BQPMF","CQQMG","BQQNF"],a:0},
+    {q:"Clock shows 4:30. Angle between hands?",ops:["30°","35°","40°","45°"],a:3},
+    {q:"5 friends. A taller than B, shorter than C. D tallest. E shorter than B. Shortest?",ops:["A","B","C","E"],a:3},
+    {q:"Odd one out among: 121,144,169,196,225,256",ops:["121","169","196","225"],a:2}
+  ]
+},
+strategy:["RRB NTPC Stage 1 is screening, Stage 2 decides merit rank","Mathematics: Number system + Ratio + Time & Work = highest weightage","Reasoning: Series + Coding + Analogies = 40% of section","GA: Indian Railways GK is unique to NTPC — prepare specifically","Negative marking is 1/3 — attempt only 70%+ sure questions","Speed key: 100 Qs in 90 min = 54 seconds per question","Previous year papers are best resource — topics repeat frequently","Target 75+ out of 100 in Stage 1 for safe rank"]
+};
+
+EDATA.ibps_po={name:"IBPS PO",color:"#d97706",icon:"🏦",
+info:{Mode:"CBT Online",Prelims:"100 Qs/100M/60min",Mains:"155 Qs/200M+Essay/180min",Interview:"100M"},
+syllabus:{
+  "Prelims":{color:"#d97706",sections:{
+    "English Language":{color:"#457b9d",topics:["Reading Comprehension","Cloze Test","Para-jumble","Error Spotting","Fill in the Blanks","Sentence Improvement","Word Usage","Phrase Replacement"]},
+    "Quantitative Aptitude":{color:"#e9c46a",topics:["Simplification","Number Series","DI Tables","DI Charts","Quadratic Equations","Profit & Loss","Time & Work","Time Speed Distance","Simple & Compound Interest","Average","Ratio & Proportion","Percentage","Mensuration","Permutation & Combination","Probability"]},
+    "Reasoning Ability":{color:"#e63946",topics:["Puzzles & Seating Arrangement","Direction Sense","Blood Relations","Order & Ranking","Coding-Decoding","Inequality","Syllogism","Input-Output","Alphanumeric Series","Machine Input-Output"]}
+  }},
+  "Mains":{color:"#b45309",sections:{
+    "Reasoning & Computer":{color:"#e63946",topics:["Advanced Puzzles","Critical Reasoning","Computer Aptitude","Logical Reasoning","Data Sufficiency"]},
+    "English Language Advanced":{color:"#457b9d",topics:["RC Banking Passages","Para Summary","Sentence Connectors","Vocabulary in Context","Error Identification"]},
+    "Data Analysis & Interpretation":{color:"#e9c46a",topics:["DI Tables","DI Bar Graphs","DI Line Graphs","DI Pie Charts","DI Mixed Caselet","Data Sufficiency","Quantity Comparison"]},
+    "General Economy & Banking":{color:"#2a9d8f",topics:["Indian Banking System","RBI & Monetary Policy","Financial Markets","Economic Reforms","Union Budget","Banking Terms","Current Affairs Banking","Insurance Sector","Govt Schemes Finance"]}
+  }}
+},
+questions:{
+  "Quantitative Aptitude":[
+    {q:"SI on ₹5000 @8% for 3 years?",ops:["₹1000","₹1100","₹1200","₹1300"],a:2},
+    {q:"A and B ages ratio 3:5, sum=40. As age?",ops:["12","15","18","20"],a:1},
+    {q:"A does work in 10 days, B in 15. Together?",ops:["5","6","7","8"],a:1},
+    {q:"CI on ₹1000 @10% for 2 years?",ops:["₹200","₹210","₹220","₹205"],a:1},
+    {q:"Two trains 200m and 150m, speeds 60 and 40 kmph opposite. Time to cross?",ops:["18s","20s","22s","25s"],a:0},
+    {q:"If 20% of x=30% of y, x:y=?",ops:["2:3","3:2","4:3","3:4"],a:1},
+    {q:"Volume of cylinder r=7cm, h=10cm?",ops:["1540","1450","1640","1480"],a:0},
+    {q:"Average of 5 numbers=40. One 50 replaced by 70. New average?",ops:["42","44","46","48"],a:1},
+    {q:"Probability of 2 heads in 2 coin tosses?",ops:["1/4","1/2","3/4","1"],a:0},
+    {q:"Speed downstream 15kmph, upstream 9kmph. Boat speed?",ops:["10","11","12","13"],a:2},
+    {q:"Series: 3,8,15,24,35,?",ops:["46","48","50","52"],a:1},
+    {q:"Quadratic: x²-5x+6=0, roots?",ops:["2,3","1,6","2,4","3,4"],a:0},
+    {q:"Area of rhombus, diagonals 12cm and 16cm?",ops:["96cm²","100cm²","192cm²","48cm²"],a:0},
+    {q:"Mixture: 40L milk 10% water. Add 5L water. New water%?",ops:["18%","20%","22%","25%"],a:1},
+    {q:"If a train goes 60km/h for 2h then 80km/h for 3h, average speed?",ops:["68","70","72","74"],a:2}
+  ],
+  "Reasoning":[
+    {q:"A,B,C,D,E in a row. A 2nd from left. D right of A. C rightmost. Who is 3rd?",ops:["B","E","D","B or E"],a:1},
+    {q:"Inequality: A>B≥C, D<C. Definitely true?",ops:["A>D","B>D","A>D and B>D","None certain"],a:2},
+    {q:"Syllogism: Some banks are offices. All offices are buildings. Some banks are buildings?",ops:["True","False","Uncertain","Partial"],a:0},
+    {q:"Direction: From X, walk 4km East, turn left 3km. Distance from X?",ops:["5km","6km","7km","8km"],a:0},
+    {q:"Series: ACE,BDF,CEG,?",ops:["DFH","EGI","DGH","EFH"],a:0},
+    {q:"Ranking: A is 15th from top, 16th from bottom. Total students?",ops:["29","30","31","32"],a:1},
+    {q:"Data sufficiency: Is x positive? S1: x²=25. S2: x³=125.",ops:["S1 alone","S2 alone","Both needed","Neither"],a:1},
+    {q:"Coding: if CLOUD=FORZG, then LIGHT=?",ops:["OLJKW","OLJJW","PLJKW","OLJKV"],a:0},
+    {q:"Puzzle: 5 floors. A on 3rd. B directly above C. D on top. E below A. B on which floor?",ops:["2nd","4th","5th","1st"],a:1},
+    {q:"Input: 85 39 72 54 16 28. After arranging ascending, 3rd element?",ops:["39","54","28","72"],a:0},
+    {q:"A walks 3km N, then 4km E. Distance from start?",ops:["4km","5km","6km","7km"],a:1},
+    {q:"Odd one out: January,March,May,June,July,August",ops:["January","March","June","August"],a:2},
+    {q:"Blood: P is brother of Q. Q is sister of R. R is son of S. S is father of P. True?",ops:["True","False","Cannot determine","Partial"],a:0},
+    {q:"Machine Input: Step 1 reverses first 2 words. Step 2 reverses last 2. After step 2 of 'cat dog rat hen'?",ops:["dog cat hen rat","cat dog hen rat","dog cat rat hen","hen rat dog cat"],a:0},
+    {q:"6 people in circle. A opposite B. C is left of A. D right of B. Who is opposite E?",ops:["A","B","C","D"],a:1}
+  ],
+  "Banking GK":[
+    {q:"RBI established in?",ops:["1934","1935","1936","1947"],a:1},
+    {q:"CRR stands for?",ops:["Central Reserve Rate","Cash Reserve Ratio","Credit Reserve Rate","Capital Reserve Ratio"],a:1},
+    {q:"Repo Rate: banks borrow from RBI at?",ops:["CRR","Repo Rate","Reverse Repo","Bank Rate"],a:1},
+    {q:"NABARD deals with?",ops:["Industrial finance","Agricultural finance","International trade","Insurance"],a:1},
+    {q:"UPI launched by?",ops:["RBI","NPCI","SBI","Finance Ministry"],a:1},
+    {q:"SEBI regulates?",ops:["Banking","Insurance","Securities market","Pension funds"],a:2},
+    {q:"Basel III norms relate to?",ops:["Trade","Banking regulations","Environmental standards","Labour"],a:1},
+    {q:"Fiscal deficit means?",ops:["Revenue minus Expenditure","Total Expenditure minus Total Receipts excluding borrowings","None of these","Exports minus Imports"],a:1},
+    {q:"SWIFT stands for?",ops:["Society for Worldwide Interbank Financial Telecommunication","System Wire International Fund Transfer","Standard World Interbank Financial Transfer","None"],a:0},
+    {q:"Minimum balance in BSBD account?",ops:["₹100","₹500","₹1000","Zero"],a:3},
+    {q:"NPA stands for?",ops:["Non-Performing Asset","Net Performing Asset","Nominal Performing Account","Net Principal Amount"],a:0},
+    {q:"Which is NOT a function of RBI?",ops:["Issue currency","Banker to government","Regulate NBFCs","Give retail loans directly"],a:3},
+    {q:"Cheque validity period in India?",ops:["3 months","6 months","1 year","2 years"],a:0},
+    {q:"MUDRA scheme is for?",ops:["Large industries","Micro & small enterprises","Agriculture only","Women only"],a:1},
+    {q:"SBI was nationalised in?",ops:["1947","1955","1969","1980"],a:1}
+  ]
+},
+strategy:["Prelims: Sectional cutoffs — clear all 3 sections individually","Reasoning Puzzles & Seating = 30-40% of Reasoning — master these","Quant DI = 15-20 marks — practice all DI types","English RC in banking has finance/economy passages","Mains GK: Banking Awareness + Current Affairs = 40 marks","Mains has Descriptive test (Essay + Letter) — practice weekly","IBPS PO interview tests banking knowledge + personality","Speed + accuracy: 36 sec per question in Prelims"]
+};
+
+EDATA.neet={name:"NEET UG",color:"#db2777",icon:"🩺",
+info:{Mode:"OMR Offline","Total":"200 Qs/720M/3h20min",Negative:"-1 per wrong",Subjects:"Physics+Chemistry+Biology"},
+syllabus:{
+  "Physics":{color:"#6366f1",sections:{
+    "Class 11 Physics":{color:"#4361ee",topics:["Physical World & Measurement","Kinematics","Laws of Motion","Work Energy & Power","Rotational Motion","Gravitation","Properties of Bulk Matter","Thermodynamics","Kinetic Theory of Gases","Oscillations & Waves"]},
+    "Class 12 Physics":{color:"#7b2ff7",topics:["Electrostatics","Current Electricity","Magnetic Effects of Current","Magnetism & Matter","Electromagnetic Induction","Alternating Current","Electromagnetic Waves","Ray Optics","Wave Optics","Dual Nature of Radiation","Atoms & Nuclei","Electronic Devices"]}
+  }},
+  "Chemistry":{color:"#f97316",sections:{
+    "Class 11 Chemistry":{color:"#ea580c",topics:["Basic Concepts","Atomic Structure","Chemical Bonding","States of Matter","Thermodynamics","Equilibrium","Redox Reactions","Hydrogen","s-Block Elements","p-Block Elements","Organic Chemistry Basics","Hydrocarbons"]},
+    "Class 12 Chemistry":{color:"#f59e0b",topics:["Solid State","Solutions","Electrochemistry","Chemical Kinetics","Surface Chemistry","d & f Block Elements","Coordination Compounds","Haloalkanes","Alcohols & Phenols","Aldehydes & Ketones","Carboxylic Acids","Amines","Biomolecules","Polymers","Chemistry in Everyday Life"]}
+  }},
+  "Biology":{color:"#22c55e",sections:{
+    "Botany":{color:"#16a34a",topics:["Living World","Biological Classification","Plant Kingdom","Morphology of Flowering Plants","Anatomy of Flowering Plants","Cell Structure & Function","Cell Cycle & Division","Transport in Plants","Mineral Nutrition","Photosynthesis","Respiration in Plants","Plant Growth","Reproduction in Plants","Genetics & Evolution","Biotechnology","Ecology & Environment"]},
+    "Zoology":{color:"#15803d",topics:["Animal Kingdom","Structural Organisation in Animals","Human Physiology Digestion","Human Physiology Breathing","Human Physiology Body Fluids","Human Physiology Locomotion","Human Physiology Neural Control","Human Physiology Chemical Coordination","Human Reproduction","Human Health & Disease","Biotechnology Applications","Organisms & Populations","Biodiversity & Conservation"]}
+  }}
+},
+questions:{
+  "Biology":[
+    {q:"DNA replication is?",ops:["Conservative","Semi-conservative","Dispersive","None"],a:1},
+    {q:"Krebs cycle occurs in?",ops:["Cytoplasm","Mitochondrial matrix","Inner mitochondrial membrane","Nucleus"],a:1},
+    {q:"Enzyme for DNA replication?",ops:["RNA polymerase","DNA polymerase III","Helicase","Ligase"],a:1},
+    {q:"Universal blood donor group?",ops:["A","B","AB","O"],a:3},
+    {q:"Photosystem I chlorophyll absorbs at?",ops:["660nm","680nm","700nm","720nm"],a:2},
+    {q:"Transpiration mainly through?",ops:["Stomata","Lenticels","Cuticle","Roots"],a:0},
+    {q:"Reverse transcription shown by?",ops:["Watson & Crick","Temin & Baltimore","Jacob & Monod","Griffith"],a:1},
+    {q:"Lac operon described by?",ops:["Watson & Crick","Jacob & Monod","Morgan","Mendel"],a:1},
+    {q:"Virus infecting bacteria?",ops:["Viroid","Bacteriophage","Prion","Retrovirus"],a:1},
+    {q:"Binomial nomenclature given by?",ops:["Darwin","Lamarck","Linnaeus","Mendel"],a:2},
+    {q:"Site of protein synthesis?",ops:["Nucleus","Ribosome","Mitochondria","Golgi"],a:1},
+    {q:"Hormone controlling blood sugar?",ops:["Thyroxine","Insulin","Adrenaline","Glucagon"],a:1},
+    {q:"Structure storing pollen in angiosperms?",ops:["Pistil","Stamen","Anther","Filament"],a:2},
+    {q:"AIDS virus is?",ops:["DNA virus","RNA virus","Bacteriophage","Prion"],a:1},
+    {q:"BOD of water indicates?",ops:["Chemical pollution","Organic pollution","Heavy metals","Radioactivity"],a:1}
+  ],
+  "Physics":[
+    {q:"SI unit of electric field intensity?",ops:["N/C","V/m","Both N/C and V/m","J/C"],a:2},
+    {q:"Work done moving charge on equipotential surface?",ops:["Maximum","Minimum","Zero","Infinity"],a:2},
+    {q:"Magnetic force on stationary charge?",ops:["Maximum","Minimum","Zero","Depends on field"],a:2},
+    {q:"Photoelectric effect shows?",ops:["Wave nature","Particle nature","Both","Neither"],a:1},
+    {q:"Half life=10 years. After 30 years fraction remaining?",ops:["1/2","1/4","1/8","1/16"],a:2},
+    {q:"RI of glass=1.5. Speed of light in glass?",ops:["2×10⁸","2.5×10⁸","3×10⁸","1.5×10⁸"],a:0},
+    {q:"p-n junction forward bias?",ops:["Increased depletion","Decreased depletion","No change","Reversed"],a:1},
+    {q:"Lenzs law: conservation of?",ops:["Charge","Energy","Momentum","Mass"],a:1},
+    {q:"de Broglie: speed doubles, wavelength?",ops:["Doubles","Halves","Quadruples","No change"],a:1},
+    {q:"Youngs double slit, fringe width β=?",ops:["λD/d","λd/D","dD/λ","λ/dD"],a:0},
+    {q:"Bohrs model: radius of nth orbit ∝?",ops:["n","n²","n³","1/n"],a:1},
+    {q:"Body in SHM at mean position: KE?",ops:["Zero","Maximum","Minimum","Equal to PE"],a:1},
+    {q:"Escape velocity from earth?",ops:["7.9km/s","11.2km/s","16.4km/s","3.5km/s"],a:1},
+    {q:"Dimensional formula of Plancks constant?",ops:["ML²T⁻¹","MLT⁻¹","ML²T⁻²","MLT⁻²"],a:0},
+    {q:"Force on current-carrying conductor F=?",ops:["qvB","BIL sinθ","qvB sinθ","BIL"],a:1}
+  ],
+  "Chemistry":[
+    {q:"Hybridisation of carbon in methane?",ops:["sp","sp2","sp3","sp3d"],a:2},
+    {q:"Highest electronegativity?",ops:["Oxygen","Nitrogen","Fluorine","Chlorine"],a:2},
+    {q:"Nucleophile is?",ops:["Electron pair acceptor","Electron pair donor","Proton donor","Proton acceptor"],a:1},
+    {q:"Catalyst in Haber process?",ops:["Platinum","Iron","Nickel","Vanadium"],a:1},
+    {q:"Enthalpy of formation of element in standard state?",ops:["Positive","Negative","Zero","Cannot determine"],a:2},
+    {q:"SN1 fastest for?",ops:["Primary","Secondary","Tertiary","Methyl"],a:2},
+    {q:"Peptide bond formed between?",ops:["Two amino groups","Two carboxyl groups","Amino & carboxyl group","Two hydroxyl groups"],a:2},
+    {q:"Inversion of sugar means?",ops:["Hydrolysis of sucrose","Hydrolysis of glucose","Isomerization","Oxidation"],a:0},
+    {q:"IUPAC name of CH3-CH2-CHO?",ops:["Propanal","Propanol","Propanone","Butanal"],a:0},
+    {q:"Number of atoms in 1 mole?",ops:["6.022×10²²","6.022×10²³","6.022×10²⁴","6.022×10²¹"],a:1},
+    {q:"Geometry of [Ni(CN)4]²⁻?",ops:["Tetrahedral","Square planar","Octahedral","Linear"],a:1},
+    {q:"Nylon-6,6 formed from?",ops:["Caprolactam","Adipic acid + Hexamethylene diamine","Ethylene glycol","Glycine"],a:1},
+    {q:"Half-life first order reaction=10min. Rate constant?",ops:["0.0693 min⁻¹","0.693 min⁻¹","6.93 min⁻¹","0.00693 min⁻¹"],a:0},
+    {q:"Strongest acid?",ops:["HF","HCl","HBr","HI"],a:3},
+    {q:"Born-Haber cycle used to calculate?",ops:["Enthalpy of combustion","Lattice energy","Bond energy","Ionization energy"],a:1}
+  ]
+},
+strategy:["NEET: Biology=360 marks (50%) — most important subject","NCERT is the Bible — 85% questions directly from NCERT","Physics: Class 12 topics = 60%+","Chemistry: Organic + Coordination = highest weightage","Target: 340+ Biology + 140+ Chemistry + 100+ Physics = 580+","Minimum 2 years dedicated preparation","Solve NEET PYQs last 10 years — minimum 3 rotations","1 full mock per week from 6 months before exam"]
+};
+
+EDATA.jee={name:"JEE Main/Adv",color:"#be185d",icon:"⚡",
+info:{Mode:"CBT (Main) + Offline (Adv)","JEE Main":"75 Qs/300M/3hrs","JEE Advanced":"2 Papers×3h",Negative:"-1 (Main MCQ)"},
+syllabus:{
+  "Mathematics":{color:"#4361ee",sections:{
+    "Algebra":{color:"#4361ee",topics:["Sets Relations & Functions","Complex Numbers","Quadratic Equations","Matrices & Determinants","Permutations & Combinations","Mathematical Induction","Binomial Theorem","Sequences & Series","Statistics & Probability"]},
+    "Calculus":{color:"#7b2ff7",topics:["Limits & Continuity","Differentiation","Applications of Derivatives","Integration","Definite Integrals","Area Under Curves","Differential Equations"]},
+    "Coordinate & Vector":{color:"#a855f7",topics:["Straight Lines","Circles","Parabola","Ellipse","Hyperbola","3D Geometry","Vectors & 3D"]}
+  }},
+  "Physics":{color:"#e63946",sections:{
+    "Mechanics":{color:"#e63946",topics:["Kinematics","Newtons Laws of Motion","Work Energy Power","Rotational Motion","Gravitation","SHM","Waves & Sound","Fluid Mechanics","Thermal Physics","Elasticity"]},
+    "Electrodynamics":{color:"#f97316",topics:["Electrostatics","Current Electricity","Magnetic Effects","EMI & AC","Electromagnetic Waves","Ray Optics","Wave Optics"]},
+    "Modern Physics":{color:"#f59e0b",topics:["Dual Nature","Atomic Structure","Nuclear Physics","Semiconductors","Communication Systems"]}
+  }},
+  "Chemistry":{color:"#22c55e",sections:{
+    "Physical Chemistry":{color:"#22c55e",topics:["Atomic Structure","Chemical Bonding","States of Matter","Thermodynamics","Equilibrium","Electrochemistry","Chemical Kinetics","Solutions"]},
+    "Inorganic Chemistry":{color:"#16a34a",topics:["Periodic Properties","s-Block","p-Block","d & f Block","Coordination Compounds","Metallurgy","Environmental Chemistry"]},
+    "Organic Chemistry":{color:"#15803d",topics:["Basic Organic Chemistry","Hydrocarbons","Halides","Alcohols & Ethers","Carbonyl Compounds","Carboxylic Acids","Amines","Polymers & Biomolecules"]}
+  }}
+},
+questions:{
+  "Mathematics":[
+    {q:"z=(1+i)/(1-i), z⁴=?",ops:["1","-1","i","-i"],a:0},
+    {q:"Roots of x²-5x+6=0?",ops:["2,3","1,6","2,4","3,4"],a:0},
+    {q:"∫(0 to π/2) sinx dx=?",ops:["0","1","2","-1"],a:1},
+    {q:"Terms in (a+b)¹⁰?",ops:["10","11","12","9"],a:1},
+    {q:"|A|=5 for 3×3 matrix. |2A|=?",ops:["10","20","40","80"],a:2},
+    {q:"P(sum=7) rolling 2 dice?",ops:["1/6","5/36","6/36","7/36"],a:2},
+    {q:"Eccentricity of circle?",ops:["0","1","2","0.5"],a:0},
+    {q:"d/dx(sin⁻¹x)=?",ops:["1/√(1-x²)","-1/√(1-x²)","1/√(1+x²)","1/(1-x²)"],a:0},
+    {q:"Focus of parabola y²=8x?",ops:["(2,0)","(0,2)","(-2,0)","(4,0)"],a:0},
+    {q:"nC0+nC1+...+nCn=?",ops:["n","2ⁿ","2ⁿ⁻¹","n²"],a:1},
+    {q:"The value of sin75°?",ops:["(√6+√2)/4","(√6-√2)/4","(√3+1)/2√2","(√3-1)/2√2"],a:0},
+    {q:"Determinant of identity matrix order 3?",ops:["0","1","3","-1"],a:1},
+    {q:"Arithmetic mean of 1 to n?",ops:["n/2","(n+1)/2","n","n(n+1)/2"],a:1},
+    {q:"Probability of getting head twice in 2 tosses?",ops:["1/4","1/2","3/4","1"],a:0},
+    {q:"If |z|=1, z+1/z=?",ops:["2","2Re(z)","2iIm(z)","0"],a:1}
+  ],
+  "Physics":[
+    {q:"Projectile reaches max height h. Time to reach it?",ops:["√(h/g)","√(2h/g)","2√(h/g)","√(h/2g)"],a:1},
+    {q:"Escape velocity from earth?",ops:["7.9km/s","11.2km/s","16.4km/s","3.5km/s"],a:1},
+    {q:"Dimensional formula of Plancks constant?",ops:["ML²T⁻¹","MLT⁻¹","ML²T⁻²","MLT⁻²"],a:0},
+    {q:"Series LCR at resonance, impedance=?",ops:["Maximum","Minimum (=R)","Zero","Infinity"],a:1},
+    {q:"Convex lens f=20cm. Object at 30cm. Image at?",ops:["60cm","40cm","-60cm","20cm"],a:0},
+    {q:"Work function 2eV. Threshold frequency?",ops:["4.8×10¹⁴Hz","3×10¹⁵Hz","6×10¹⁴Hz","2×10¹⁵Hz"],a:0},
+    {q:"Body in SHM at mean position: KE?",ops:["Zero","Maximum","Minimum","Equal to PE"],a:1},
+    {q:"Bohrs model: radius of nth orbit ∝?",ops:["n","n²","n³","1/n"],a:1},
+    {q:"Bernoullis principle: conservation of?",ops:["Mass","Momentum","Energy","Angular momentum"],a:2},
+    {q:"Temperature coefficient of resistance of semiconductor?",ops:["Positive","Negative","Zero","Infinite"],a:1},
+    {q:"Force on current-carrying conductor F=?",ops:["qvB","BIL sinθ","qvB sinθ","BIL"],a:1},
+    {q:"In photoelectric effect, stopping potential depends on?",ops:["Intensity","Frequency","Both","Neither"],a:1},
+    {q:"MOI of solid sphere about diameter?",ops:["2/5 MR²","2/3 MR²","MR²","1/2 MR²"],a:0},
+    {q:"Isothermal process: ΔU=?",ops:["Positive","Negative","Zero","Depends"],a:2},
+    {q:"Two sources coherent if they have same?",ops:["Amplitude","Frequency","Constant phase difference","Wavelength"],a:2}
+  ],
+  "Chemistry":[
+    {q:"Shape of H₂O by VSEPR?",ops:["Linear","Bent/Angular","Tetrahedral","Trigonal planar"],a:1},
+    {q:"Highest lattice energy?",ops:["NaCl","MgO","CaO","KCl"],a:1},
+    {q:"Hybridisation of N in NO₂⁻?",ops:["sp","sp2","sp3","sp3d"],a:1},
+    {q:"SN2 proceeds with?",ops:["Retention","Inversion","Racemization","No change"],a:1},
+    {q:"Equivalent conductance at infinite dilution?",ops:["Zero","Maximum","Finite","Infinite"],a:1},
+    {q:"Half-life first order reaction=10min. Rate constant?",ops:["0.0693 min⁻¹","0.693 min⁻¹","6.93 min⁻¹","0.00693 min⁻¹"],a:0},
+    {q:"Geometry of [Ni(CN)4]²⁻?",ops:["Tetrahedral","Square planar","Octahedral","Linear"],a:1},
+    {q:"Nylon-6,6 from?",ops:["Caprolactam","Adipic acid + Hexamethylene diamine","Ethylene glycol","Glycine"],a:1},
+    {q:"Which shows optical isomerism?",ops:["CH4","CHCl3","CH2Cl2","CHBrClF"],a:3},
+    {q:"Hybridisation of S in SF6?",ops:["sp3","sp3d","sp3d2","sp2"],a:2},
+    {q:"Strongest acid?",ops:["HF","HCl","HBr","HI"],a:3},
+    {q:"Ester formed from alcohol and acid is called?",ops:["Saponification","Esterification","Hydrolysis","Reduction"],a:1},
+    {q:"Catalyst in Contact process?",ops:["Iron","Vanadium pentoxide","Platinum","Nickel"],a:1},
+    {q:"Born-Haber cycle: calculates?",ops:["Enthalpy of combustion","Lattice energy","Bond energy","Ionization energy"],a:1},
+    {q:"IUPAC of CH₃MgBr?",ops:["Methyl magnesium bromide","Bromomethane","Methylbromide","Mg methyl bromide"],a:0}
+  ]
+},
+strategy:["JEE Main: gateway to NITs/IIITs. JEE Advanced: IITs","Mathematics = Physics = Chemistry (equal weightage)","Calculus (40%) + Algebra (35%) = 75% of JEE Mathematics","Physics: Mechanics (30%) + Electrodynamics (25%) = 55%","NCERT Chemistry essential — most inorganic from NCERT","Minimum 2 years dedicated preparation for IITs","Target: 150+ Main for good NIT, 200+ for top NIT","Mock test every week — analyze every mistake"]
+};
+
+EDATA.pg_neet={name:"NEET PG",color:"#be123c",icon:"🏥",
+info:{Mode:"CBT Online","Total":"200 Qs/800M/3.5hrs",Negative:"-1 per wrong",Eligibility:"MBBS completed"},
+syllabus:{
+  "Pre-Clinical":{color:"#6366f1",sections:{
+    "Anatomy":{color:"#4361ee",topics:["General Anatomy","Upper Limb","Lower Limb","Thorax","Abdomen","Head & Neck","Neuroanatomy","Embryology","Histology"]},
+    "Physiology":{color:"#7b2ff7",topics:["General Physiology","Nerve Muscle Physiology","Blood & Immunity","Cardiovascular Physiology","Respiratory Physiology","Renal Physiology","GI Physiology","Endocrine Physiology","Reproductive Physiology","CNS Physiology","Special Senses"]},
+    "Biochemistry":{color:"#a855f7",topics:["Biomolecules Proteins","Biomolecules Carbohydrates","Biomolecules Lipids","Enzymes","Metabolism Carbohydrate","Metabolism Lipid","Metabolism Protein","Nucleic Acids & Molecular Biology","Vitamins & Minerals","Clinical Biochemistry"]}
+  }},
+  "Para-Clinical":{color:"#f97316",sections:{
+    "Pathology":{color:"#ea580c",topics:["Cell Injury & Adaptation","Inflammation & Repair","Neoplasia","Cardiovascular Pathology","Respiratory Pathology","GI Pathology","Renal Pathology","Haematology","Endocrine Pathology","CNS Pathology","Musculoskeletal Pathology"]},
+    "Pharmacology":{color:"#f59e0b",topics:["General Pharmacology","Autonomic Drugs","CNS Drugs","Cardiovascular Drugs","GI Drugs","Chemotherapy Antibiotics","Chemotherapy Antifungal Antiviral","Antitubercular & Antileprotic","Endocrine Pharmacology","Autacoids","Haematological Drugs"]},
+    "Microbiology":{color:"#22c55e",topics:["General Bacteriology","Gram Positive Cocci","Gram Negative Bacteria","Mycobacteria","Anaerobes & Spirochetes","Virology DNA Viruses","Virology RNA Viruses","Mycology","Parasitology","Immunology","Hospital Infections"]},
+    "Forensic Medicine":{color:"#16a34a",topics:["Medical Jurisprudence","Thanatology","Wounds & Injuries","Toxicology General","Toxicology Specific Poisons","Sexual Offences","Identification","Medical Negligence"]}
+  }},
+  "Clinical":{color:"#dc2626",sections:{
+    "Medicine":{color:"#dc2626",topics:["Cardiology","Pulmonology","Nephrology","Gastroenterology","Endocrinology","Neurology","Haematology Clinical","Rheumatology","Infectious Diseases","Dermatology","Clinical Pharmacology"]},
+    "Surgery":{color:"#b91c1c",topics:["General Surgery Principles","GI Surgery","Urology","Orthopaedics","Neurosurgery","Cardiothoracic Surgery","Plastic Surgery","Endocrine Surgery","Paediatric Surgery","Trauma & Emergency"]},
+    "OBG":{color:"#e63946",topics:["Normal Obstetrics","Abnormal Obstetrics","Obstetric Complications","Foetal Medicine","Normal Gynaecology","Gynaecological Disorders","Reproductive Endocrinology","Contraception","Gynaecological Oncology"]},
+    "Paediatrics":{color:"#f97316",topics:["Growth & Development","Neonatology","Nutrition Disorders","Infections in Children","Respiratory Disorders","GI Disorders","Haematological Disorders","Neurological Disorders","Congenital Disorders","Vaccines & Immunisation"]},
+    "PSM Community Medicine":{color:"#f59e0b",topics:["Concepts of Health & Disease","Epidemiology","Biostatistics","Nutrition & National Health","Communicable Diseases Control","Non-Communicable Diseases","Environmental Health","Health Management","National Health Programmes","Occupational Health","International Health"]}
+  }}
+},
+questions:{
+  "Medicine & Surgery":[
+    {q:"Most common cause of community-acquired pneumonia?",ops:["Klebsiella","Streptococcus pneumoniae","Staphylococcus aureus","Haemophilus influenzae"],a:1},
+    {q:"Drug of choice for Plasmodium vivax malaria?",ops:["Artemether","Chloroquine","Quinine","Primaquine"],a:1},
+    {q:"Earliest sign of increased ICP?",ops:["Papilloedema","Vomiting","Headache","Altered consciousness"],a:0},
+    {q:"Charcots triad is seen in?",ops:["Acute cholecystitis","Cholangitis","Pancreatitis","Appendicitis"],a:1},
+    {q:"Most common site for ectopic pregnancy?",ops:["Ovary","Ampulla of fallopian tube","Isthmus","Cornua"],a:1},
+    {q:"Apgar score assessed at?",ops:["1 min only","1 and 5 minutes","5 and 10 minutes","2 and 5 minutes"],a:1},
+    {q:"Investigation of choice for renal calculi?",ops:["X-ray KUB","IVP","USG abdomen","CT KUB"],a:3},
+    {q:"Virchows triad includes all EXCEPT?",ops:["Stasis","Endothelial injury","Hypercoagulability","Infection"],a:3},
+    {q:"Paget's disease: elevated marker?",ops:["Calcium","Alkaline phosphatase","Acid phosphatase","Phosphorus"],a:1},
+    {q:"Wells criteria is used for?",ops:["Pulmonary embolism","DVT","Stroke","MI"],a:1},
+    {q:"Commonest organism in UTI?",ops:["Klebsiella","E. coli","Proteus","Staphylococcus"],a:1},
+    {q:"CURB-65 score is used in?",ops:["MI","Community acquired pneumonia","DVT","Sepsis"],a:1},
+    {q:"Courvoisiers law: palpable gallbladder + jaundice suggests?",ops:["Gallstones","Carcinoma head of pancreas","Hepatitis","Cholangitis"],a:1},
+    {q:"Normal fasting blood glucose?",ops:["60-80 mg/dL","70-100 mg/dL","100-126 mg/dL","80-90 mg/dL"],a:1},
+    {q:"Hutchinsons triad is seen in?",ops:["Congenital syphilis","Gonorrhoea","Tuberculosis","Leprosy"],a:0}
+  ],
+  "Pathology & Pharmacology":[
+    {q:"Reed-Sternberg cells are seen in?",ops:["CML","Hodgkins lymphoma","Multiple myeloma","AML"],a:1},
+    {q:"Psammoma bodies are seen in?",ops:["Papillary carcinoma thyroid","Follicular carcinoma","Medullary carcinoma","Anaplastic carcinoma"],a:0},
+    {q:"Drug of choice for status epilepticus?",ops:["Phenytoin","Diazepam","Phenobarbitone","Valproate"],a:1},
+    {q:"Metformin acts by?",ops:["Increasing insulin secretion","Decreasing hepatic gluconeogenesis","Increasing glucose uptake","All of the above"],a:1},
+    {q:"Ghons focus is seen in?",ops:["Primary tuberculosis","Secondary tuberculosis","Miliary TB","TB meningitis"],a:0},
+    {q:"Gray baby syndrome caused by?",ops:["Tetracycline","Chloramphenicol","Streptomycin","Erythromycin"],a:1},
+    {q:"Warfarin acts by inhibiting?",ops:["Thrombin","Vitamin K epoxide reductase","Factor Xa","Platelet aggregation"],a:1},
+    {q:"Tumor marker for hepatocellular carcinoma?",ops:["CEA","CA 125","AFP","PSA"],a:2},
+    {q:"Mechanism of action of penicillin?",ops:["Inhibit protein synthesis","Inhibit cell wall synthesis","Inhibit DNA gyrase","Disrupt cell membrane"],a:1},
+    {q:"Virchows node enlarged in?",ops:["Breast cancer","Stomach cancer","Lung cancer","Colon cancer"],a:1},
+    {q:"Koilocytes are seen in?",ops:["HSV infection","HPV infection","CMV infection","EBV infection"],a:1},
+    {q:"Drug causing disulfiram-like reaction with alcohol?",ops:["Metronidazole","Ampicillin","Tetracycline","Gentamicin"],a:0},
+    {q:"Half life of aspirin?",ops:["15 min","4-6 hours","15-20 hours","24 hours"],a:1},
+    {q:"Tumor that spreads by blood early?",ops:["Squamous cell carcinoma","Adenocarcinoma","Sarcoma","Basal cell carcinoma"],a:2},
+    {q:"Type IV hypersensitivity is mediated by?",ops:["IgE","IgG + complement","Immune complexes","T-cells"],a:3}
+  ],
+  "Physiology & Biochemistry":[
+    {q:"Bohr effect refers to?",ops:["O2 curve shift right with CO2","O2 curve shift left with CO2","CO2 transport","Oxygen capacity"],a:0},
+    {q:"Enzyme deficient in phenylketonuria?",ops:["Tyrosinase","Phenylalanine hydroxylase","Homogentisic acid oxidase","Fumarylacetoacetase"],a:1},
+    {q:"Normal GFR in adults?",ops:["60-80 ml/min","80-100 ml/min","100-120 ml/min","120-140 ml/min"],a:2},
+    {q:"Insulin promotes?",ops:["Glycogenolysis","Gluconeogenesis","Lipogenesis","Ketogenesis"],a:2},
+    {q:"Carrier of cholesterol from liver to tissues?",ops:["HDL","LDL","VLDL","Chylomicrons"],a:1},
+    {q:"Resting membrane potential of neuron?",ops:["-50 mV","-70 mV","-90 mV","-110 mV"],a:1},
+    {q:"Coenzyme required for pyruvate dehydrogenase?",ops:["NAD only","FAD only","TPP Lipoate CoA NAD FAD","Only CoA"],a:2},
+    {q:"Surfactant produced by?",ops:["Type I pneumocytes","Type II pneumocytes","Clara cells","Goblet cells"],a:1},
+    {q:"Frank-Starling law states?",ops:["HR increases with preload","Stroke volume increases with ventricular filling","Afterload increases contractility","None"],a:1},
+    {q:"Hartnup disease: defect in transport of?",ops:["Dibasic amino acids","Neutral amino acids","Acidic amino acids","Imino acids"],a:1},
+    {q:"Henderson-Hasselbalch equation: pH=?",ops:["pKa + log[A-]/[HA]","pKa - log[A-]/[HA]","pKa + log[HA]/[A-]","pKa × log[A-]/[HA]"],a:0},
+    {q:"RAAS: Angiotensin II mainly causes?",ops:["Vasodilation","Vasoconstriction","Diuresis","Natriuresis"],a:1},
+    {q:"Juxtaglomerular cells secrete?",ops:["Aldosterone","Renin","ADH","EPO"],a:1},
+    {q:"Starling forces: oncotic pressure of plasma?",ops:["Promotes filtration","Opposes filtration","No effect","Variable"],a:1},
+    {q:"Normal blood pH?",ops:["7.25-7.35","7.35-7.45","7.45-7.55","7.30-7.40"],a:1}
+  ]
+},
+strategy:["NEET PG covers all 19 MBBS subjects","Highest weightage: Medicine 15% + Surgery 12% + OBG 10% + Paeds 8% + PSM 8% = 53%","Pre-clinical = ~20% dont ignore MBBS basics","Para-clinical = ~27% — most scoring section","Pathology: image-based questions are common","Pharmacology: drug mechanisms and adverse effects heavily tested","Revise each subject minimum 3-4 times","Image-based questions = 20-25% of paper","PYQ analysis: last 5 years questions repeat in modified form","Grand tests every week from 3 months before exam"]
+};
+// ══════════════════════════════════════════════
+// EXAM TIME CONFIG
+// ══════════════════════════════════════════════
+const ETC={
+  ssc_cgl:{tiers:[{n:"Tier 1",b:140,r:1.0,note:"1 read — Tier 1 is qualifying"},{n:"Tier 2",b:180,r:1.0,note:"1 read + deep practice — Tier 2 is merit"}],diff:"Moderate — speed + formula recall",total:"~380h total · 6-8 months"},
+  upsc_cse:{tiers:[{n:"Prelims",b:280,r:1.1,note:"1 deep read + 10% re-revision (NCERT + Laxmikant)"},{n:"Mains GS",b:380,r:1.1,note:"1 read + 10% re-revision + answer writing"},{n:"Optional Subject",b:220,r:1.1,note:"1 deep read + 10% re-revision"}],diff:"Highest difficulty — open-ended, vast, analytical",total:"~1100h total · minimum 12-15 months"},
+  rrb_ntpc:{tiers:[{n:"Stage 1",b:100,r:1.0,note:"1 revision — speed focused"},{n:"Stage 2",b:90,r:1.0,note:"1 revision — accuracy focused"}],diff:"Moderate — Railways GK is unique",total:"~230h total · 4-5 months"},
+  ibps_po:{tiers:[{n:"Prelims",b:110,r:1.0,note:"1 revision — 60min/100Qs"},{n:"Mains",b:140,r:1.0,note:"1 revision + Banking GK"}],diff:"Moderate-High — puzzle reasoning + DI",total:"~310h total · 6-8 months"},
+  neet:{tiers:[{n:"Physics",b:160,r:1.1,note:"1 read (NCERT+HC Verma) + 10% re-revision"},{n:"Chemistry",b:150,r:1.1,note:"1 read (NCERT mandatory) + 10% re-revision"},{n:"Biology",b:200,r:1.15,note:"1 deep NCERT read + 15% re-revision (50% of paper)"}],diff:"High — 85% NCERT, Biology dominates (360/720)",total:"~670h total · minimum 2 years"},
+  jee:{tiers:[{n:"Mathematics",b:240,r:1.1,note:"1 deep read + 10% re-revision — Calculus+Algebra"},{n:"Physics",b:200,r:1.1,note:"1 read + 10% re-revision — Mechanics+Electrodynamics"},{n:"Chemistry",b:170,r:1.1,note:"1 read + 10% re-revision — NCERT Inorganic"}],diff:"Very High (Adv) / High (Main) — concept + application",total:"~810h for IIT · ~450h for NIT"},
+  pg_neet:{tiers:[{n:"Pre-Clinical",b:200,r:1.1,note:"1 read + 10% re-revision — Anatomy+Physio+Biochem"},{n:"Para-Clinical",b:240,r:1.15,note:"1 read + 15% re-revision — most scoring"},{n:"Clinical",b:320,r:1.2,note:"1 deep read + 20% re-revision — highest weightage 55%"}],diff:"Very High — 19 subjects, clinical reasoning + images",total:"~1080h total · 1-2 years after MBBS"}
+};
+
+// Topic depth
+const HEAVY=["calculus","integration","differentiation","organic chemistry","coordination","thermodynamics","electrostatics","mechanics","rotational","modern physics","genetics","ecology","international","disaster","ethics","essay","answer writing","optional","pathology","pharmacology","microbiology","surgery","medicine","anatomy","physiology","biochemistry"];
+const VHEAVY=["mains","optional subject","clinical","comprehensive","complex","caselet","critical thinking"];
+const LIGHT=["sports","awards","books","authors","important days","static gk","honours","schemes","abbreviations","computer memory","ms word","ms excel","ms powerpoint"];
+function tHrs(topic,eid){
+  const t=topic.toLowerCase();
+  if(LIGHT.some(k=>t.includes(k)))return 2;
+  if(VHEAVY.some(k=>t.includes(k)))return 10;
+  if(HEAVY.some(k=>t.includes(k)))return 7;
+  return{upsc_cse:5,jee:5,neet:4.5,pg_neet:6,ibps_po:4,ssc_cgl:3.5,rrb_ntpc:3}[eid]||3.5;
+}
+
+// ══════════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════════
+const SK='eh2_';
+function lDB(id){try{return JSON.parse(localStorage.getItem(SK+id+'_db')||'{}')}catch{return{}}}
+function sDB(id,d){try{localStorage.setItem(SK+id+'_db',JSON.stringify(d))}catch{}}
+function lTM(id){try{return JSON.parse(localStorage.getItem(SK+id+'_tm')||'{}')}catch{return{}}}
+function sTM(id,d){try{localStorage.setItem(SK+id+'_tm',JSON.stringify(d))}catch{}}
+function lMeta(){try{return JSON.parse(localStorage.getItem(SK+'meta')||'{}')}catch{return{}}}
+function sMeta(d){try{localStorage.setItem(SK+'meta',JSON.stringify(d))}catch{}}
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let CID=null,DB={},TM={},META=lMeta();
+let TAB='home';
+let swOn=false,swEl=0,swSt=null,swBs=0,swIv=null;
+// sub-states
+let trackerTier='',trackerSec=null;
+let mockSubTab='daily',mSel=null,mAns={},mDone=false;
+let extView='list';
+let histPage=0;
+let syllView='all';
+let noteEditTopic=null;
+let planDay=0;
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+const pct=(d,t)=>t===0?0:Math.round(d/t*100);
+const tdKey=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const fHMS=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};
+const fHM=h=>{if(!h||h<=0)return'0m';const hh=Math.floor(h),mm=Math.round((h-hh)*60);if(hh===0)return mm+'m';if(mm===0)return hh+'h';return hh+'h '+mm+'m'};
+const $=id=>document.getElementById(id);
+const scr=()=>$('screen');
+
+function toast(msg,ms=2000){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),ms);
+}
+
+// DOM builder
+function el(tag,attrs,kids){
+  const e=document.createElement(tag);
+  if(attrs)for(const[k,v]of Object.entries(attrs)){
+    if(k==='style')Object.assign(e.style,v);
+    else if(k==='cls')e.className=v;
+    else if(k[0]==='$')e.addEventListener(k.slice(1),v);
+    else e.setAttribute(k,v);
+  }
+  if(kids!=null)(Array.isArray(kids)?kids:[kids]).forEach(c=>{
+    if(c==null||c===false)return;
+    e.appendChild(typeof c==='string'?document.createTextNode(c):c);
+  });
+  return e;
+}
+const bar=(p,c,h=6)=>el('div',{cls:'bar-track',style:{height:h+'px'}},[el('div',{cls:'bar-fill',style:{width:Math.min(100,p)+'%',height:'100%',background:`linear-gradient(90deg,${c}99,${c})`}})]);
+function sbox(c,lbl,val,sub){
+  const b=el('div',{cls:'stat',style:{background:c+'15',border:`1px solid ${c}25`}});
+  b.append(el('div',{cls:'stat-val',style:{color:c}},String(val)));
+  b.append(el('div',{cls:'stat-lbl'},lbl));
+  if(sub)b.append(el('div',{cls:'stat-sub',style:{color:c+'cc'}},sub));
+  return b;
+}
+function btn(lbl,c,ghost,fn,full){
+  const b=el('button',{cls:full?'btn-primary':(ghost?'btn-ghost':'btn-outline'),style:full?{'--c':c,'--c2':c}:{'--c':c}},lbl);
+  if(full)b.style.background=`linear-gradient(135deg,${c},${c}cc)`;
+  if(fn)b.addEventListener('click',fn);
+  return b;
+}
+function cSVG(p,c,sz=72){
+  const r=(sz-8)/2,ci=2*Math.PI*r,ds=ci*p/100;
+  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  s.setAttribute('width',sz);s.setAttribute('height',sz);s.style.flexShrink='0';
+  const mk=(st,sd)=>{const cc=document.createElementNS('http://www.w3.org/2000/svg','circle');cc.setAttribute('cx',sz/2);cc.setAttribute('cy',sz/2);cc.setAttribute('r',r);cc.setAttribute('fill','none');cc.setAttribute('stroke',st);cc.setAttribute('stroke-width','8');if(sd){cc.setAttribute('stroke-dasharray',sd);cc.setAttribute('stroke-linecap','round');cc.setAttribute('transform',`rotate(-90 ${sz/2} ${sz/2})`)}return cc};
+  s.appendChild(mk('var(--border)'));s.appendChild(mk(c,`${ds} ${ci}`));
+  const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+  t.setAttribute('x',sz/2);t.setAttribute('y',sz/2+1);t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','middle');
+  t.style.fill=c;t.style.fontSize=sz*0.2+'px';t.style.fontWeight='800';t.style.fontFamily='monospace';
+  t.textContent=p+'%';s.appendChild(t);return s;
+}
+function chkSVG(){
+  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('width','12');s.setAttribute('height','12');s.setAttribute('viewBox','0 0 12 12');
+  const p=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+  p.setAttribute('points','1.5,6 5,9.5 10.5,2.5');p.setAttribute('stroke','white');p.setAttribute('stroke-width','2.5');p.setAttribute('fill','none');p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');
+  s.appendChild(p);return s;
+}
+function modal(content){
+  const ov=el('div',{cls:'modal-overlay'});
+  const bx=el('div',{cls:'modal-box'});
+  bx.appendChild(content);ov.appendChild(bx);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
+  document.body.appendChild(ov);
+  return ov;
+}
+
+// ══════════════════════════════════════════════
+// SYLLABUS STATE (topic-tick based)
+// ══════════════════════════════════════════════
+function syllState(def){
+  const eid=CID,cfg=ETC[eid];const keys=Object.keys(def.syllabus);
+  let totH=0,doneH=0,remH=0,totT=0,doneT=0;
+  const tiers=[];
+  keys.forEach((tk,ti)=>{
+    const tier=def.syllabus[tk];
+    const tcfg=cfg?.tiers[ti];const rv=tcfg?.r||1;
+    let tt=0,td=0,tr=0,tc=0,tdc=0;
+    Object.entries(tier.sections).forEach(([sk,sec])=>{
+      sec.topics.forEach(topic=>{
+        const key=sk+'||'+topic;const done=!!DB.progress[key];
+        const h=Math.round(tHrs(topic,eid)*rv*10)/10;
+        tt+=h;tc++;
+        if(done){td+=h;tdc++;}else tr+=h;
+      });
+    });
+    tt=Math.round(tt);td=Math.round(td);tr=Math.round(tr);
+    tiers.push({name:tk,total:tt,done:td,remain:tr,topics:tc,doneTopics:tdc,color:tier.color,revNote:tcfg?.note||''});
+    totH+=tt;doneH+=td;remH+=tr;totT+=tc;doneT+=tdc;
+  });
+  return{total:Math.round(totH),done:Math.round(doneH),remain:Math.round(remH),
+    totalT:totT,doneT,remainT:totT-doneT,tiers,
+    diff:cfg?.diff||'',totalNote:cfg?.total||''};
+}
+
+// study average
+function studyAvg(){
+  const td=TM.dayData||{};
+  const days=Object.keys(td).filter(dk=>(td[dk]?.sw||0)/3600+(td[dk]?.mn||0)>0);
+  const total=days.reduce((a,dk)=>a+(td[dk]?.sw||0)/3600+(td[dk]?.mn||0),0);
+  return{avg:days.length>0?total/days.length:0,total,days:days.length};
+}
+
+function calcStreak(){
+  const td=TM.dayData||{};const today=tdKey();
+  const th=(td[today]?.sw||0)/3600+(td[today]?.mn||0);
+  let streak=0;const cd=new Date();
+  if(th<2)cd.setDate(cd.getDate()-1);
+  for(let i=0;i<365;i++){
+    const dk=`${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}-${String(cd.getDate()).padStart(2,'0')}`;
+    if((td[dk]?.sw||0)/3600+(td[dk]?.mn||0)>=2){streak++;cd.setDate(cd.getDate()-1);}else break;
+  }
+  return streak;
+}
+
+function examProgress(id){
+  const d=lDB(id),def=EDATA[id];
+  if(!def||!d.progress)return{p:0,done:0,total:0};
+  let done=0,total=0;
+  Object.values(def.syllabus).forEach(tier=>Object.entries(tier.sections).forEach(([sk,sec])=>{
+    total+=sec.topics.length;sec.topics.forEach(t=>{if(d.progress[sk+'||'+t])done++;});
+  }));
+  return{p:pct(done,total),done,total};
+}
+
+// ══════════════════════════════════════════════
+// ROUTING
+// ══════════════════════════════════════════════
+function openExam(id){
+  const def=EDATA[id];
+  if(!def){showCS(id);return}
+  CID=id;DB=lDB(id);TM=lTM(id);
+  if(!DB.progress)DB.progress={};
+  if(!DB.mockScores)DB.mockScores={};
+  if(!DB.extMocks)DB.extMocks=[];
+  if(!DB.notes)DB.notes={};
+  if(!DB.difficulty)DB.difficulty={};
+  if(!DB.revisionDue)DB.revisionDue={};
+  if(!TM.dayData)TM.dayData={};
+  META.lastExam=id;sMeta(META);
+  // restore timer
+  clearInterval(swIv);swOn=false;swEl=0;swBs=0;swSt=null;
+  if(TM.swOn&&TM.swSt){
+    swSt=TM.swSt;swBs=TM.swBs||0;
+    swEl=swBs+Math.floor((Date.now()-swSt)/1000);swOn=true;
+    swIv=setInterval(tickSW,1000);
+  }
+  // reset sub-states
+  trackerTier=Object.keys(def.syllabus)[0];trackerSec=null;
+  mockSubTab='daily';mSel=null;mDone=false;extView='list';histPage=0;syllView='all';
+  TAB='home';
+  $('nav').style.display='flex';
+  updateNavActive();
+  render();
+}
+
+function goHub(){
+  clearInterval(swIv);swIv=null;swOn=false;CID=null;
+  $('nav').style.display='none';
+  renderHub();
+}
+
+function setTab(t){TAB=t;trackerSec=null;histPage=0;updateNavActive();render();}
+function updateNavActive(){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===TAB));
+}
+
+function render(){const s=scr();s.innerHTML='';
+  if(TAB==='home')renderHome(s);
+  else if(TAB==='study')renderStudy(s);
+  else if(TAB==='progress')renderProgress(s);
+  else if(TAB==='tests')renderTests(s);
+  else if(TAB==='more')renderMore(s);
+}
+
+function showCS(id){
+  const reg=REGISTRY.flatMap(c=>c.exams).find(e=>e.id===id);
+  const c=reg?.color||'#4361ee';
+  const div=el('div',{style:{textAlign:'center',padding:'20px'}});
+  div.append(el('div',{style:{fontSize:'52px',marginBottom:'12px'}},reg?.icon||'🚧'));
+  div.append(el('div',{cls:'h2',style:{color:c,marginBottom:'8px'}},reg?.name||id));
+  div.append(el('div',{cls:'body muted',style:{marginBottom:'20px'}},'Full content coming soon! This exam prep module is being built.'));
+  div.append(el('div',{style:{background:c+'12',border:`1px solid ${c}25`,borderRadius:'12px',padding:'14px',marginBottom:'20px',textAlign:'left'}},[
+    el('div',{cls:'h3',style:{color:c,marginBottom:'8px'}},'What you can do now:'),
+    ...[' Create custom topics in tracker',' Log study hours in Study tab',' Add your mock test scores',' Set your exam date for countdown'].map(t=>el('div',{cls:'body',style:{padding:'4px 0',color:'var(--text2)'}},t))
+  ]));
+  div.append(btn('← Back to Exams','#64748b',true,goHub));
+  modal(div);
+}
+// ══════════════════════════════════════════════
+// HUB PAGE
+// ══════════════════════════════════════════════
+function renderHub(){
+  const s=scr();s.innerHTML='';
+  // header
+  const hdr=el('div',{style:{padding:'20px 16px 12px',background:'linear-gradient(180deg,var(--nav-bg) 0%,#070714 100%)'}});
+  hdr.append(el('div',{cls:'h1',style:{background:'linear-gradient(90deg,#4361ee,#a855f7,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',marginBottom:'4px'}},'🎯 Exam Prep Hub'));
+  hdr.append(el('div',{cls:'caption'},'Choose your exam to begin preparation'));
+  s.append(hdr);
+  const cont=el('div',{style:{padding:'0 14px 30px'}});
+  REGISTRY.forEach(cat=>{
+    cont.append(el('div',{cls:'cat-title'},cat.cat));
+    const grid=el('div',{cls:'hub-grid'});
+    cat.exams.forEach(exam=>{
+      const prog=examProgress(exam.id);
+      const card=el('div',{cls:'exam-card',style:{borderColor:exam.color+'30'}});
+      card.append(el('div',{cls:'glow',style:{background:`linear-gradient(90deg,${exam.color},${exam.color}55)`}}));
+      const top=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}});
+      top.append(el('div',{style:{fontSize:'26px',lineHeight:'1'}},exam.icon));
+      const badge=exam.full
+        ?el('span',{cls:'badge',style:{background:'#22c55e15',color:'#22c55e',border:'1px solid #22c55e30'}},'FULL')
+        :el('span',{cls:'badge',style:{background:'#1e1e3a',color:'var(--text2)'}},'SOON');
+      top.append(badge);card.append(top);
+      card.append(el('div',{style:{fontSize:'14px',fontWeight:'800',color:'var(--text)',marginBottom:'2px'}},exam.name));
+      card.append(el('div',{cls:'caption',style:{marginBottom:prog.total>0?'8px':'0'}},exam.sub));
+      if(prog.total>0){
+        card.append(bar(prog.p,exam.color,4));
+        card.append(el('div',{style:{fontSize:'10px',color:exam.color,fontWeight:'700',marginTop:'4px'}},prog.p+'% done'));
+      }
+      card.addEventListener('click',()=>openExam(exam.id));
+      grid.append(card);
+    });
+    cont.append(grid);
+  });
+  s.append(cont);
+}
+
+// ══════════════════════════════════════════════
+// HOME TAB — "What to do today"
+// ══════════════════════════════════════════════
+function renderHome(s){
+  const def=EDATA[CID];const c=def.color;
+  const st=syllState(def);const sa=studyAvg();const streak=calcStreak();
+  const today=tdKey();
+  const todaySW=(TM.dayData[today]?.sw||0)/3600;
+  const todayMn=TM.dayData[today]?.mn||0;
+  const todayH=todaySW+todayMn;
+  const target=TM.targetHrs||6;
+  const dl=TM.examDate?Math.max(0,Math.ceil((new Date(TM.examDate)-new Date(new Date().toDateString()))/86400000)):null;
+  const minH=dl&&dl>0&&st.remain>0?st.remain/dl:null;
+  const prog=examProgress(CID);
+
+  const cont=el('div',{style:{padding:'16px'}});
+
+  // TOP — exam name + back
+  const topRow=el('div',{style:{display:'flex',alignItems:'center',gap:'10px',marginBottom:'16px'}});
+  const bk=el('button',{cls:'btn-icon',style:{fontSize:'16px'}},'←');bk.addEventListener('click',goHub);
+  topRow.append(bk);
+  topRow.append(el('div',{style:{flex:'1'}},[
+    el('div',{cls:'h2',style:{color:c}},def.icon+' '+def.name),
+    el('div',{cls:'caption'},dl!==null?`${dl} days to exam`:'Set exam date for countdown')
+  ]));
+  // streak badge
+  if(streak>0){
+    const sb=el('div',{cls:'pill',style:{background:'#f59e0b15',border:'1px solid #f59e0b30',color:'#f59e0b'}});
+    sb.append('🔥 '+streak);cont.append(topRow);
+    topRow.append(sb);
+  }
+  cont.append(topRow);
+
+  // MOTIVATIONAL COUNTDOWN WIDGET
+  const motiv=getMotivationalMsg(dl);
+  const mc2=el('div',{cls:'card',style:{borderColor:motiv.color+'30',marginBottom:'12px',background:`linear-gradient(135deg,var(--bg2),${motiv.color}08)`}});
+  const mrow=el('div',{style:{display:'flex',gap:'12px',alignItems:'center'}});
+  mrow.append(el('div',{style:{fontSize:'36px',lineHeight:'1',flexShrink:'0'}},motiv.emoji));
+  const minfo=el('div',{style:{flex:'1'}});
+  if(dl!==null&&dl>0){
+    minfo.append(el('div',{style:{fontSize:'28px',fontWeight:'900',color:motiv.color,lineHeight:'1',marginBottom:'4px'}},dl+' days'));
+    minfo.append(el('div',{cls:'caption',style:{marginBottom:'4px'}},'until your exam'));
+  }
+  minfo.append(el('div',{style:{fontSize:'12px',color:'var(--text2)',lineHeight:'1.5'}},motiv.msg));
+  mrow.append(minfo);mc2.append(mrow);cont.append(mc2);
+
+  // TODAY CARD
+  const tc=el('div',{cls:'card',style:{borderColor:c+'30',marginBottom:'12px'}});
+  const th=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}});
+  th.append(el('div',{cls:'h3',style:{color:'var(--text2)'}},'📅 Today'));
+  th.append(el('div',{cls:'caption'},new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})));
+  tc.append(th);
+  const tg=el('div',{cls:'grid3',style:{marginBottom:'12px'}});
+  tg.append(sbox(todayH>=target?'#22c55e':'#f97316','Studied today',fHM(todayH),todayH>=target?'✓ Target hit!':'Goal: '+target+'h'));
+  tg.append(sbox(c,'Need/day',minH?minH.toFixed(1)+'h':'—',st.remain>0?st.remain+'h left':'Done!'));
+  tg.append(sbox(streak>0?'#f59e0b':'#64748b','Streak',streak+' days',streak>=7?'🔥 Hot!':streak>0?'Keep going':'Start today'));
+  tc.append(tg);
+  // today bar
+  const tp=Math.min(100,todayH/target*100);
+  const tbh=el('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'4px'}});
+  tbh.append(el('span',{cls:'caption'},'Today\'s target ('+target+'h)'));
+  tbh.append(el('span',{style:{fontSize:'11px',color:tp>=100?'#22c55e':'#94a3b8',fontWeight:'600'}},Math.round(tp)+'%'));
+  tc.append(tbh);tc.append(bar(tp,tp>=100?'#22c55e':c,8));
+  // quick start button
+  const qb=btn('▶  Start Studying',c,false,()=>setTab('study'),true);qb.style.marginTop='12px';
+  tc.append(qb);cont.append(tc);
+
+  // SYLLABUS REMAINING — the key card
+  const src=el('div',{cls:'card',style:{borderColor:'#7b2ff730',marginBottom:'12px'}});
+  const srh=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}});
+  srh.append(el('div',{cls:'h3',style:{color:'#a855f7'}},'🧠 Syllabus Remaining'));
+  srh.append(el('div',{cls:'caption'},st.doneT+'/'+st.totalT+' topics done'));
+  src.append(srh);
+  // big remaining number
+  const big=el('div',{style:{textAlign:'center',padding:'8px 0 14px'}});
+  big.append(el('div',{style:{fontSize:'48px',fontWeight:'900',color:st.remain>0?'#e63946':'#22c55e',lineHeight:'1'}},st.remain>0?st.remain+'h':'Done!'));
+  big.append(el('div',{cls:'caption',style:{marginTop:'4px'}},'hours of syllabus remaining'));
+  src.append(big);
+  src.append(bar(pct(st.done,st.total),'#a855f7',8));
+  const pcrow=el('div',{style:{display:'flex',justifyContent:'space-between',marginTop:'6px',marginBottom:'12px'}});
+  pcrow.append(el('span',{cls:'caption'},pct(st.done,st.total)+'% covered'));
+  pcrow.append(el('span',{cls:'caption',style:{color:'#a855f7'}},st.done+'h done'));
+  src.append(pcrow);
+  if(minH!==null&&st.remain>0){
+    const daysNeed=sa.avg>0?Math.ceil(st.remain/sa.avg):null;
+    const ok=sa.avg>=minH;
+    const ac=el('div',{style:{background:ok?'#22c55e12':'#e6394612',border:`1px solid ${ok?'#22c55e':'#e63946'}25`,borderRadius:'10px',padding:'10px'}});
+    ac.append(el('div',{style:{fontSize:'13px',fontWeight:'700',color:ok?'#22c55e':'#e63946',marginBottom:'6px'}},(ok?'✅ On Track':'⚠️ Behind')+' — '+dl+' days to exam'));
+    const ag=el('div',{cls:'grid2',style:{gap:'8px'}});
+    ag.append(sbox('#4361ee','Min hrs/day',minH.toFixed(1)+'h','to finish'));
+    ag.append(sbox('#f97316','Your avg',fHM(sa.avg),ok?'✓ good':'increase!'));
+    ac.append(ag);
+    if(daysNeed){
+      ac.append(el('div',{style:{fontSize:'11px',color:'var(--text2)',marginTop:'8px',textAlign:'center'}},
+        `At current pace: finish in ${daysNeed} days — ${daysNeed<=dl?'✓ before exam 🎉':'⚠️ after exam!'}`));
+    }
+    src.append(ac);
+  }else if(!TM.examDate){
+    const sc2=el('div',{style:{background:'#4361ee12',border:'1px solid #4361ee25',borderRadius:'10px',padding:'10px',textAlign:'center'}});
+    sc2.append(el('div',{cls:'caption'},'Set exam date in ⏱ Study tab to see prediction'));
+    sc2.append(btn('Set Exam Date →','#4361ee',false,()=>setTab('study')));
+    src.append(sc2);
+  }
+  cont.append(src);
+
+  // WEAK TOPICS (from mock analysis)
+  const weakTopics=getWeakTopics();
+  if(weakTopics.length>0){
+    const wc=el('div',{cls:'card',style:{borderColor:'#e6394630',marginBottom:'12px'}});
+    wc.append(el('div',{cls:'h3',style:{color:'#e63946',marginBottom:'10px'}},'🎯 Focus Areas'));
+    wc.append(el('div',{cls:'caption',style:{marginBottom:'10px'}},'Based on your mock test performance:'));
+    weakTopics.slice(0,3).forEach(w=>{
+      const r=el('div',{style:{display:'flex',alignItems:'center',gap:'8px',padding:'8px 0',borderBottom:'1px solid var(--border)'}});
+      r.append(el('div',{style:{width:'8px',height:'8px',borderRadius:'50%',background:'#e63946',flexShrink:'0'}}));
+      r.append(el('span',{cls:'body',style:{flex:'1'}},w.subject));
+      r.append(el('span',{cls:'caption',style:{color:'#e63946',fontWeight:'700'}},w.avg+'% avg'));
+      wc.append(r);
+    });
+    cont.append(wc);
+  }
+
+  // DUE FOR REVISION
+  const dueTopics=getDueRevision();
+  if(dueTopics.length>0){
+    const dc=el('div',{cls:'card',style:{borderColor:'#f9741630',marginBottom:'12px'}});
+    dc.append(el('div',{cls:'h3',style:{color:'#f97316',marginBottom:'10px'}},'🔄 Due for Revision'));
+    dc.append(el('div',{cls:'caption',style:{marginBottom:'10px'}},dueTopics.length+' topics ticked 15+ days ago'));
+    dueTopics.slice(0,4).forEach(t=>{
+      const r=el('div',{style:{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border)'}});
+      r.append(el('span',{cls:'body'},t.topic));
+      r.append(el('span',{cls:'caption',style:{color:'#f97316'}},t.days+'d ago'));
+      dc.append(r);
+    });
+    cont.append(dc);
+  }
+
+  // PROGRESS SNAPSHOT
+  const snap=el('div',{cls:'card',style:{borderColor:c+'25',marginBottom:'12px'}});
+  snap.append(el('div',{cls:'h3',style:{color:'var(--text2)',marginBottom:'12px'}},'📊 Quick Stats'));
+  const sg=el('div',{cls:'grid2',style:{gap:'8px'}});
+  sg.append(sbox(c,'Topics Done',st.doneT+'/'+st.totalT,pct(st.done,st.total)+'% by hours'));
+  sg.append(sbox('#2a9d8f','Total Studied',fHM(sa.total),sa.days+' days'));
+  snap.append(sg);
+  cont.append(snap);
+
+  s.append(cont);
+}
+
+function getWeakTopics(){
+  if(!DB.extMocks||!DB.extMocks.length)return[];
+  const subMocks=DB.extMocks.filter(m=>m.subjects);
+  if(!subMocks.length)return[];
+  const SUBJS=['Reasoning','Quantitative Aptitude','English','General Awareness','Computer Knowledge'];
+  return SUBJS.map(subj=>{
+    const rel=subMocks.filter(m=>m.subjects[subj]?.max>0);
+    if(!rel.length)return null;
+    const avg=Math.round(rel.reduce((a,m)=>a+Math.round((m.subjects[subj].obtained||0)/m.subjects[subj].max*100),0)/rel.length);
+    return{subject:subj,avg};
+  }).filter(x=>x&&x.avg<60).sort((a,b)=>a.avg-b.avg);
+}
+
+function getDueRevision(){
+  const today=new Date();const due=[];
+  const rev=DB.revisionDue||{};
+  Object.entries(rev).forEach(([key,dateStr])=>{
+    const tickDate=new Date(dateStr);
+    const days=Math.floor((today-tickDate)/86400000);
+    if(days>=15){
+      const parts=key.split('||');
+      due.push({topic:parts[parts.length-1],key,days});
+    }
+  });
+  return due.sort((a,b)=>b.days-a.days);
+}
+
+// ══════════════════════════════════════════════
+// STUDY TAB — timer + exam date + manual log
+// ══════════════════════════════════════════════
+function tickSW(){
+  swEl=swBs+Math.floor((Date.now()-swSt)/1000);
+  const d=$('sw-disp');if(d)d.textContent=fHMS(swEl);
+  const tk=tdKey();
+  TM.dayData[tk]=TM.dayData[tk]||{sw:0,mn:0};
+  TM.dayData[tk].sw=swEl;TM.swBs=swEl;sTM(CID,TM);
+}
+
+function renderStudy(s){
+  const def=EDATA[CID];const c=def.color;const today=tdKey();
+  const cont=el('div',{style:{padding:'16px'}});
+
+  // page title
+  cont.append(el('div',{cls:'h2',style:{marginBottom:'16px'}},'⏱ Study Session'));
+
+  // EXAM DATE
+  const edc=el('div',{cls:'card',style:{borderColor:'#e6394630',marginBottom:'12px'}});
+  renderExamDate(edc);cont.append(edc);
+
+  // STOPWATCH — big and clean
+  const swColor=swOn?'#22c55e':'#4361ee';
+  const swc=el('div',{cls:'card',style:{borderColor:swColor+'40',textAlign:'center',padding:'24px 16px',marginBottom:'12px'}});
+  const swLabel=el('div',{style:{fontSize:'12px',color:'var(--text3)',marginBottom:'8px',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px'}});
+  swLabel.append('Stopwatch');
+  if(swOn){const d2=el('span',{cls:'running-dot'});swLabel.append(d2);swLabel.append(el('span',{style:{color:'#22c55e',fontWeight:'700',fontSize:'11px'}},' RUNNING'));}
+  swc.append(swLabel);
+  swc.append(el('div',{cls:'sw-display',id:'sw-disp',style:{color:swColor,marginBottom:'20px'}},fHMS(swOn?swEl:(TM.dayData[today]?.sw||0))));
+  const swBtns=el('div',{style:{display:'flex',gap:'10px',justifyContent:'center'}});
+  if(!swOn){
+    const sb=btn('▶  Start','#22c55e',false,()=>{
+      const now=Date.now();swSt=now;swOn=true;
+      TM.swOn=true;TM.swSt=now;TM.swBs=swBs;sTM(CID,TM);
+      clearInterval(swIv);swIv=setInterval(tickSW,1000);render();
+    },true);
+    sb.style.flex='1';sb.style.maxWidth='200px';swBtns.append(sb);
+  }else{
+    const pb=btn('⏸  Pause','#e63946',false,()=>{
+      clearInterval(swIv);swIv=null;
+      swBs+=Math.floor((Date.now()-swSt)/1000);swEl=swBs;swOn=false;swSt=null;
+      const tk=tdKey();TM.dayData[tk]=TM.dayData[tk]||{sw:0,mn:0};
+      TM.dayData[tk].sw=swBs;TM.swOn=false;TM.swSt=null;TM.swBs=swBs;sTM(CID,TM);render();
+    },true);
+    pb.style.flex='1';pb.style.maxWidth='200px';swBtns.append(pb);
+  }
+  const rb=el('button',{cls:'btn-icon'},'↺');
+  rb.addEventListener('click',()=>{
+    if(!confirm('Reset today\'s stopwatch?'))return;
+    clearInterval(swIv);swIv=null;swBs=0;swEl=0;swOn=false;swSt=null;
+    const tk=tdKey();TM.dayData[tk]=TM.dayData[tk]||{sw:0,mn:0};TM.dayData[tk].sw=0;
+    TM.swOn=false;TM.swSt=null;TM.swBs=0;sTM(CID,TM);render();
+  });
+  swBtns.append(rb);swc.append(swBtns);
+  swc.append(el('div',{cls:'caption',style:{marginTop:'12px'}},'Timer keeps running even if you switch tabs'));
+  cont.append(swc);
+
+  // TODAY SUMMARY
+  const todaySW=(TM.dayData[today]?.sw||0)/3600;
+  const todayMn=TM.dayData[today]?.mn||0;
+  const todayTot=todaySW+todayMn;
+  const target=TM.targetHrs||6;
+  const tc2=el('div',{cls:'card',style:{borderColor:'#a855f730',marginBottom:'12px'}});
+  tc2.append(el('div',{cls:'h3',style:{color:'var(--text2)',marginBottom:'10px'}},'📅 Today\'s Summary'));
+  const tg=el('div',{cls:'grid3',style:{marginBottom:'10px'}});
+  tg.append(sbox('#4361ee','Stopwatch',fHM(todaySW),''));
+  tg.append(sbox('#f97316','Manual',fHM(todayMn),''));
+  tg.append(sbox(todayTot>=target?'#22c55e':'#e63946','Total',fHM(todayTot),todayTot>=target?'✅ Done!':'of '+target+'h'));
+  tc2.append(tg);
+  const tbh=el('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'4px'}});
+  tbh.append(el('span',{cls:'caption'},'Daily target: '+target+'h'));
+  tbh.append(el('span',{style:{fontSize:'11px',fontWeight:'700',color:todayTot>=target?'#22c55e':'#a855f7'}},Math.min(100,Math.round(todayTot/target*100))+'%'));
+  tc2.append(tbh);tc2.append(bar(Math.min(100,todayTot/target*100),todayTot>=target?'#22c55e':'#a855f7',8));
+  cont.append(tc2);
+
+  // MANUAL LOG WITH SUBJECT TAGGING
+  cont.append(renderManualLogWithSubject(cont, def));
+
+  // TARGET SETTING
+  const setCard=el('div',{cls:'card',style:{borderColor:'#a855f730',marginBottom:'12px'}});
+  setCard.append(el('div',{cls:'h3',style:{color:'#a855f7',marginBottom:'10px'}},'🎯 Daily Target'));
+  const sRow=el('div',{style:{display:'flex',gap:'8px',alignItems:'flex-end'}});
+  const sWrap=el('div',{style:{flex:'1'}});
+  sWrap.append(el('div',{cls:'input-label'},'Set daily study target (hours)'));
+  const sIn=el('input',{type:'number',min:'1',max:'16',step:'0.5'});sIn.value=TM.targetHrs||6;
+  sWrap.append(sIn);sRow.append(sWrap);
+  const sB=btn('Set','#a855f7',false,()=>{
+    const v=parseFloat(sIn.value);
+    if(!isNaN(v)&&v>0){TM.targetHrs=v;sTM(CID,TM);render();toast('Target set to '+v+'h/day');}
+  });
+  sB.style.padding='11px 16px';sB.style.alignSelf='flex-end';
+  sRow.append(sB);setCard.append(sRow);cont.append(setCard);
+
+  // STUDY HISTORY
+  const allD=Object.keys(TM.dayData||{}).filter(dk=>(TM.dayData[dk]?.sw||0)+(TM.dayData[dk]?.mn||0)>0).sort().reverse();
+  if(allD.length>0){
+    const hc=el('div',{cls:'card',style:{borderColor:'var(--border)',marginBottom:'12px'}});
+    hc.append(el('div',{cls:'h3',style:{color:'var(--text2)',marginBottom:'12px'}},'📅 Study History'));
+    // heatmap last 35 days
+    const heatDiv=el('div',{style:{marginBottom:'14px'}});
+    heatDiv.append(el('div',{cls:'caption',style:{marginBottom:'6px'}},'Last 35 days:'));
+    const hm=el('div',{cls:'heatmap'});
+    for(let i=34;i>=0;i--){
+      const d2=new Date();d2.setDate(d2.getDate()-i);
+      const dk=`${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}-${String(d2.getDate()).padStart(2,'0')}`;
+      const h2=(TM.dayData[dk]?.sw||0)/3600+(TM.dayData[dk]?.mn||0);
+      const bg=h2>=6?'#22c55e':h2>=4?'#4ade80':h2>=2?'#86efac':h2>0?'#bbf7d0':'var(--border)';
+      const cell=el('div',{cls:'heatmap-cell',style:{background:bg}});
+      cell.title=dk+': '+fHM(h2);
+      hm.append(cell);
+    }
+    heatDiv.append(hm);
+    heatDiv.append(el('div',{style:{display:'flex',gap:'8px',marginTop:'6px',alignItems:'center'}},[
+      el('span',{cls:'caption'},'Less'),
+      ...['var(--border)','#bbf7d0','#86efac','#4ade80','#22c55e'].map(bg=>el('div',{style:{width:'12px',height:'12px',borderRadius:'2px',background:bg}})),
+      el('span',{cls:'caption'},'More')
+    ]));
+    hc.append(heatDiv);
+    allD.slice(histPage*7,(histPage+1)*7).forEach(dk=>{
+      const d3=TM.dayData[dk];const sw2=(d3?.sw||0)/3600,mn2=d3?.mn||0,tot2=sw2+mn2;
+      const isT=dk===today;
+      const row=el('div',{style:{display:'flex',alignItems:'center',gap:'10px',padding:'8px 0',borderBottom:'1px solid var(--border)'}});
+      const dot=el('div',{style:{width:'8px',height:'8px',borderRadius:'50%',background:tot2>=2?'#22c55e':tot2>0?'#f97316':'var(--border2)',flexShrink:'0'}});
+      const info=el('div',{style:{flex:'1'}});
+      info.append(el('div',{style:{fontSize:'12px',color:isT?c:'#94a3b8',fontWeight:isT?'700':'400'}},new Date(dk+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+(isT?' (today)':'')));
+      const parts=[];if(sw2>0)parts.push('⏱'+fHM(sw2));if(mn2>0)parts.push('✍️'+fHM(mn2));
+      if(parts.length)info.append(el('div',{cls:'caption'},parts.join(' + ')));
+      const tv=el('div',{style:{textAlign:'right'}});
+      tv.append(el('div',{style:{fontSize:'14px',fontWeight:'800',color:tot2>=2?'#22c55e':tot2>0?'#f97316':'#64748b'}},fHM(tot2)));
+      if(tot2>=2)tv.append(el('div',{cls:'caption',style:{color:'#22c55e'}},'🔥 streak'));
+      row.append(dot,info,tv);hc.append(row);
+    });
+    const totPg=Math.ceil(allD.length/7);
+    if(totPg>1){
+      const pr=el('div',{style:{display:'flex',justifyContent:'center',gap:'8px',marginTop:'10px',alignItems:'center'}});
+      const pb=btn('←','#64748b',true,()=>{histPage--;render()});pb.disabled=histPage===0;
+      pr.append(pb,el('span',{cls:'caption',style:{padding:'4px 8px'}},(histPage+1)+'/'+totPg));
+      const nb=btn('→','#64748b',true,()=>{histPage++;render()});nb.disabled=histPage===totPg-1;
+      pr.append(nb);hc.append(pr);
+    }
+    cont.append(hc);
+  }
+  s.append(cont);
+}
+
+function renderExamDate(card){
+  card.innerHTML='';
+  if(!TM.editDate){
+    const row=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}});
+    const left=el('div');
+    left.append(el('div',{cls:'input-label',style:{marginBottom:'4px'}},'📅 Exam Date'));
+    if(TM.examDate){
+      const dl=Math.ceil((new Date(TM.examDate)-new Date(new Date().toDateString()))/86400000);
+      left.append(el('div',{style:{fontSize:'14px',fontWeight:'700',color:'var(--text)'}},new Date(TM.examDate).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})));
+      const dlCol=dl<=30?'#e63946':dl<=90?'#f97316':'#22c55e';
+      left.append(el('div',{style:{fontSize:'22px',fontWeight:'900',color:dlCol,marginTop:'2px'}},dl>0?dl+' days left':dl===0?'Exam TODAY! 🔥':Math.abs(dl)+' days ago'));
+    }else{
+      left.append(el('div',{cls:'body muted'},'Tap to set your exam date'));
+    }
+    row.append(left,btn(TM.examDate?'Edit':'Set Date','#e63946',false,()=>{TM.editDate=true;render()}));
+    card.append(row);
+  }else{
+    card.append(el('div',{cls:'input-label',style:{marginBottom:'6px'}},'Select Exam Date'));
+    const row=el('div',{style:{display:'flex',gap:'8px'}});
+    const inp=el('input',{type:'date',style:{flex:'1'}});if(TM.examDate)inp.value=TM.examDate;
+    row.append(inp,btn('Save','#22c55e',false,()=>{TM.examDate=inp.value;TM.editDate=false;sTM(CID,TM);render();toast('Exam date saved!')}),btn('✕','#64748b',true,()=>{TM.editDate=false;render()}));
+    card.append(row);
+  }
+}
+// ══════════════════════════════════════════════
+// PROGRESS TAB
+// ══════════════════════════════════════════════
+function renderProgress(s){
+  const def=EDATA[CID];const c=def.color;
+  const st=syllState(def);const sa=studyAvg();
+  const cont=el('div',{style:{padding:'16px'}});
+  cont.append(el('div',{cls:'h2',style:{marginBottom:'16px'}},'📈 Progress'));
+
+  // SYLLABUS OVERVIEW
+  const syl=syllView;
+  const ov=el('div',{cls:'card',style:{borderColor:'#7b2ff730',marginBottom:'12px'}});
+  const ovh=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}});
+  ovh.append(el('div',{cls:'h3',style:{color:'#a855f7'}},'🧠 Syllabus'));
+  // toggle
+  const tog=el('div',{style:{display:'flex',gap:'4px'}});
+  const tkeys=Object.keys(def.syllabus);
+  const opts=tkeys.length>1?[['All','all','#a855f7'],...tkeys.map((k,i)=>[k.split(' ')[0],[k,'t1','t2'][i+1]||k,[`#4361ee`,`#7b2ff7`,`#a855f7`][i]])]:[['All','all','#a855f7']];
+  opts.forEach(([lbl,val,col])=>{
+    const b=el('button',{style:{padding:'4px 8px',borderRadius:'6px',fontSize:'11px',fontWeight:'700',cursor:'pointer',border:`1px solid ${col}`,background:syllView===val?col:col+'22',color:syllView===val?'#fff':col}},lbl);
+    b.addEventListener('click',()=>{syllView=val;render()});tog.append(b);
+  });
+  ovh.append(tog);ov.append(ovh);
+
+  // big circle
+  const donePct=pct(st.done,st.total);
+  const circRow=el('div',{style:{display:'flex',alignItems:'center',gap:'16px',marginBottom:'14px'}});
+  circRow.append(cSVG(donePct,'#a855f7',80));
+  const ci=el('div',{style:{flex:'1'}});
+  ci.append(el('div',{style:{fontSize:'15px',fontWeight:'800',color:'#a855f7',marginBottom:'4px'}},st.remain>0?st.remain+'h remaining':'All done!'));
+  ci.append(el('div',{cls:'caption',style:{marginBottom:'6px'}},st.doneT+' of '+st.totalT+' topics ticked'));
+  ci.append(bar(donePct,'#a855f7',8));
+  ci.append(el('div',{style:{display:'flex',gap:'12px',marginTop:'5px'}},[
+    el('span',{style:{fontSize:'11px',color:'#22c55e'}},'✓ '+st.done+'h done'),
+    el('span',{style:{fontSize:'11px',color:'#e63946'}},'○ '+st.remain+'h left')
+  ]));
+  circRow.append(ci);ov.append(circRow);
+
+  // section breakdown
+  st.tiers.forEach((t,i)=>{
+    const col=[c,'#7b2ff7','#a855f7'][i]||c;
+    const tp=t.total>0?Math.round(t.done/t.total*100):0;
+    const tb=el('div',{style:{background:col+'08',border:`1px solid ${col}20`,borderRadius:'10px',padding:'10px',marginBottom:'8px'}});
+    const th=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}});
+    th.append(el('span',{style:{fontSize:'12px',fontWeight:'700',color:col}},t.name));
+    th.append(el('span',{style:{fontSize:'12px',fontWeight:'800',color:t.remain>0?'#e63946':'#22c55e'}},t.remain>0?t.remain+'h left':'Done!'));
+    tb.append(th);tb.append(bar(tp,col,5));
+    const dr=el('div',{style:{display:'flex',justifyContent:'space-between',marginTop:'4px'}});
+    dr.append(el('span',{cls:'caption'},t.doneTopics+'/'+t.topics+' topics'));
+    dr.append(el('span',{cls:'caption',style:{color:col}},tp+'%'));
+    tb.append(dr);
+    if(t.revNote)tb.append(el('div',{cls:'caption',style:{color:col+'99',marginTop:'3px'}},t.revNote));
+    ov.append(tb);
+  });
+  cont.append(ov);
+
+  // STUDY STATS
+  const streak=calcStreak();const streakC=streak>=7?'#f59e0b':streak>=3?'#f97316':'#4361ee';
+  const sc2=el('div',{cls:'card',style:{borderColor:'var(--border)',marginBottom:'12px'}});
+  sc2.append(el('div',{cls:'h3',style:{color:'var(--text2)',marginBottom:'10px'}},'⏱ Study Stats'));
+  const sg=el('div',{cls:'grid3',style:{marginBottom:'8px'}});
+  sg.append(sbox(streakC,'🔥 Streak',streak+' days',streak>=7?'On fire!':streak>0?'Keep it up':'Start now'));
+  sg.append(sbox('#a855f7','📈 Avg/day',fHM(sa.avg),sa.days+' active days'));
+  sg.append(sbox('#2a9d8f','📚 Total',fHM(sa.total),'all time'));
+  sc2.append(sg);
+  cont.append(sc2);
+
+  // SUBJECT TIME SPLIT
+  const subjectTime=getSubjectTimeMap();
+  if(Object.keys(subjectTime).length>0){
+    const stc=el('div',{cls:'card',style:{borderColor:'var(--border)',marginBottom:'12px'}});
+    stc.append(el('div',{cls:'h3',style:{color:'var(--text2)',marginBottom:'4px'}},'📊 Subject-wise Time'));
+    stc.append(el('div',{cls:'caption',style:{marginBottom:'10px'}},'Log via Study tab — helps spot avoided subjects'));
+    const total2=Object.values(subjectTime).reduce((a,v)=>a+v,0);
+    Object.entries(subjectTime).sort((a,b)=>b[1]-a[1]).forEach(([subj,hrs])=>{
+      const p2=total2>0?Math.round(hrs/total2*100):0;
+      const r=el('div',{style:{marginBottom:'8px'}});
+      const rh=el('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'3px'}});
+      rh.append(el('span',{cls:'body'},subj));
+      rh.append(el('span',{cls:'caption',style:{color:'var(--text2)',fontWeight:'600'}},fHM(hrs)+' ('+p2+'%)'));
+      r.append(rh);r.append(bar(p2,'#4361ee',5));stc.append(r);
+    });
+    cont.append(stc);
+  }
+
+  // MOCK SCORES TREND
+  const mocks=DB.extMocks?.filter(m=>(m.maxMarks||0)>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(mocks&&mocks.length>0){
+    const mc=el('div',{cls:'card',style:{borderColor:'var(--border)',marginBottom:'12px'}});
+    mc.append(el('div',{cls:'h3',style:{color:'var(--text2)',marginBottom:'10px'}},'📝 Mock Score Trend'));
+    mocks.slice(-8).forEach(m=>{
+      const p2=Math.round((m.obtained||0)/(m.maxMarks||1)*100);
+      const col=p2>=70?'#22c55e':p2>=50?'#f97316':'#e63946';
+      const r=el('div',{style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'7px'}});
+      r.append(el('span',{cls:'caption',style:{flexShrink:'0',minWidth:'48px'}},new Date(m.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})));
+      r.append(el('div',{style:{flex:'1'}},bar(p2,col,6)));
+      r.append(el('span',{style:{fontSize:'12px',fontWeight:'700',color:col,flexShrink:'0',minWidth:'36px',textAlign:'right'}},p2+'%'));
+      mc.append(r);
+    });
+    cont.append(mc);
+  }
+
+  s.append(cont);
+}
+
+// ── FEATURE 7: Subject-wise Time Split ──
+function getSubjectTimeMap(){
+  // Returns subject → hours from manual logs tagged with subject
+  return DB.subjectTime||{};
+}
+
+// Manual log with subject tagging (replaces basic manual log)
+function renderManualLogWithSubject(cont, def){
+  const c=def.color;
+  const mc=el('div',{cls:'card',style:{borderColor:'#f9741630',marginBottom:'12px'}});
+  mc.append(el('div',{cls:'h3',style:{color:'#f97316',marginBottom:'10px'}},'✍️ Log Hours Manually'));
+  const row1=el('div',{style:{display:'flex',gap:'8px',alignItems:'flex-end',marginBottom:'8px'}});
+  const hw=el('div',{style:{flex:'1'}});
+  hw.append(el('div',{cls:'input-label'},'Hours (e.g. 1.5 = 1h 30min)'));
+  const hIn=el('input',{type:'number',min:'0.25',max:'24',step:'0.25',placeholder:'e.g. 2.5'});
+  hw.append(hIn);row1.append(hw);
+  const sw=el('div',{style:{flex:'1'}});
+  sw.append(el('div',{cls:'input-label'},'Subject (optional)'));
+  const subjSel=el('select');
+  subjSel.append(el('option',{value:''},'-- General --'));
+  const SUBJS=['Reasoning','Quantitative Aptitude','English','General Awareness','Computer Knowledge','Mathematics','Physics','Chemistry','Biology','History','Geography','Polity','Economy','Current Affairs','Medicine','Surgery','OBG','Paediatrics','Pharmacology','Pathology','Anatomy','Physiology'];
+  SUBJS.forEach(s=>subjSel.append(el('option',{value:s},s)));
+  sw.append(subjSel);row1.append(sw);
+  mc.append(row1);
+  const addB=btn('+ Add','#f97316',false,()=>{
+    const v=parseFloat(hIn.value);
+    if(isNaN(v)||v<=0||v>24){toast('Enter a number between 0.25 and 24');return;}
+    const tk=tdKey();
+    TM.dayData[tk]=TM.dayData[tk]||{sw:0,mn:0};
+    TM.dayData[tk].mn=(TM.dayData[tk].mn||0)+v;
+    sTM(CID,TM);
+    // track subject time
+    const subj=subjSel.value;
+    if(subj){if(!DB.subjectTime)DB.subjectTime={};DB.subjectTime[subj]=(DB.subjectTime[subj]||0)+v;sDB(CID,DB);}
+    hIn.value='';subjSel.value='';
+    toast('✅ '+fHM(v)+(subj?' ('+subj+')':'')+' added!');
+    render();
+  },true);addB.style.marginTop='4px';mc.append(addB);
+  return mc;
+}
+
+// ── FEATURE 8: Motivational Countdown Messages ──
+function getMotivationalMsg(dl){
+  if(dl===null)return{msg:'Set your exam date to get a personalised countdown!',emoji:'📅',color:'#4361ee'};
+  if(dl<=0)return{msg:'Exam day is here! You\'ve got this! Stay calm and focused.',emoji:'🔥',color:'#e63946'};
+  if(dl<=7)return{msg:'Final week! Focus on revision and mock tests only. No new topics.',emoji:'⚡',color:'#e63946'};
+  if(dl<=14)return{msg:'Two weeks left! Revise weak topics and attempt 1 mock per day.',emoji:'🎯',color:'#f97316'};
+  if(dl<=30)return{msg:'One month to go! Increase daily hours and minimise distractions.',emoji:'💪',color:'#f97316'};
+  if(dl<=60)return{msg:'Two months left! This is the make-or-break phase. Stay consistent.',emoji:'📚',color:'#f59e0b'};
+  if(dl<=90)return{msg:'Three months to go! Build strong foundations. Speed will come later.',emoji:'🏗️',color:'#a855f7'};
+  if(dl<=180)return{msg:'Six months left. Plenty of time — but start now and stay consistent.',emoji:'🌱',color:'#22c55e'};
+  return{msg:'Great time to start! Consistent 2-3h daily will compound massively.',emoji:'🚀',color:'#22c55e'};
+}
+
+// ── DARK / LIGHT MODE ──
+let DARK_MODE = localStorage.getItem('eh_theme')!=='light';
+function applyTheme(){
+  document.body.classList.toggle('light',!DARK_MODE);
+  localStorage.setItem('eh_theme', DARK_MODE?'dark':'light');
+  // update theme-color meta
+  const meta=document.querySelector('meta[name=theme-color]');
+  if(meta)meta.setAttribute('content',DARK_MODE?'#070714':'#f0f4ff');
+}
+applyTheme();
+
+function toggleTheme(){
+  DARK_MODE=!DARK_MODE;applyTheme();
+  if(CID)render();else renderHub();
+  toast(DARK_MODE?'🌙 Dark mode on':'☀️ Light mode on');
+}
+
+// ══════════════════════════════════════════════
+// TESTS TAB
+// ══════════════════════════════════════════════
+function getDailyQs(pool){
+  const day=Math.floor(Date.now()/86400000);
+  const seed=day%Math.max(1,pool.length-9);
+  const sh=[...pool];
+  for(let i=sh.length-1;i>0;i--){const j=(seed*9301+49297+i*233)%sh.length;[sh[i],sh[j]]=[sh[j],sh[i]];}
+  return sh.slice(0,Math.min(10,sh.length));
+}
+function buildDailyTests(){
+  const def=EDATA[CID];if(!def?.questions)return[];
+  return Object.entries(def.questions).map(([subj,pool])=>({
+    id:'d_'+subj.toLowerCase().replace(/\s/g,'_'),
+    title:subj,color:def.color,
+    questions:getDailyQs(pool).map(q=>({q:q.q,options:q.ops,answer:q.a}))
+  }));
+}
+
+function renderTests(s){
+  const def=EDATA[CID];const c=def.color;
+  const cont=el('div',{style:{padding:'16px'}});
+
+  // sub-tabs
+  const stabs=el('div',{style:{display:'flex',gap:'8px',marginBottom:'16px'}});
+  [['daily','🎯 Daily Tests'],['ext','📝 My Mocks'],['analysis','📊 Analysis']].forEach(([v,lbl])=>{
+    const b=btn(lbl,mockSubTab===v?c:'#64748b',mockSubTab!==v,()=>{mockSubTab=v;mSel=null;mDone=false;render()});
+    stabs.append(b);
+  });
+  cont.append(stabs);
+
+  if(mockSubTab==='daily'){
+    if(!mSel)renderDailyList(cont);
+    else if(mDone)renderMockResult(cont);
+    else renderMockQs(cont);
+  }else if(mockSubTab==='ext'){
+    renderExtSection(cont);
+  }else{
+    renderMockAnalysis(cont);
+  }
+  s.append(cont);
+}
+
+function renderDailyList(pg){
+  const def=EDATA[CID];const c=def.color;
+  const info=el('div',{cls:'card-sm',style:{borderColor:c+'30',marginBottom:'12px',display:'flex',gap:'10px',alignItems:'center'}});
+  info.append(el('div',{style:{fontSize:'24px'}},'🔄'));
+  const it=el('div');
+  it.append(el('div',{cls:'h3',style:{color:c}},'Daily Practice Tests'));
+  it.append(el('div',{cls:'caption'},'10 questions each · Refreshes every day · −0.5 for wrong'));
+  info.append(it);pg.append(info);
+  buildDailyTests().forEach(t=>{
+    const prev=DB.mockScores[t.id];
+    const card=el('div',{cls:'card',style:{borderColor:c+'25',cursor:'pointer'}});
+    card.addEventListener('click',()=>{mSel=t;mAns={};mDone=false;render()});
+    const top=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}});
+    top.append(el('div',{cls:'h3',style:{color:c}},t.title));
+    if(prev){
+      const p2=Math.round(prev.correct/prev.total*100);
+      top.append(el('div',{style:{textAlign:'right'}},[
+        el('div',{style:{fontSize:'16px',fontWeight:'800',color:p2>=80?'#22c55e':p2>=50?'#f97316':'#e63946'}},prev.correct+'/'+prev.total),
+        el('div',{cls:'caption'},'last score')
+      ]));
+    }
+    card.append(top);
+    card.append(el('div',{cls:'caption',style:{marginBottom:'10px'}},t.questions.length+' questions'));
+    card.append(btn('Start Test →',c,false,null,true));
+    pg.append(card);
+  });
+}
+
+function renderMockQs(pg){
+  const bb=btn('← Back','#64748b',true,()=>{mSel=null;render()});bb.style.marginBottom='12px';pg.append(bb);
+  const hc=el('div',{cls:'card-sm',style:{borderColor:mSel.color+'30',marginBottom:'12px'}});
+  hc.append(el('div',{cls:'h3',style:{color:mSel.color,marginBottom:'4px'}},mSel.title));
+  hc.append(el('div',{cls:'caption'},Object.keys(mAns).length+' / '+mSel.questions.length+' answered'));
+  hc.append(bar(pct(Object.keys(mAns).length,mSel.questions.length),mSel.color,5));
+  pg.append(hc);
+  mSel.questions.forEach((q,i)=>{
+    const qc=el('div',{cls:'card',style:{borderColor:mSel.color+'20',marginBottom:'10px'}});
+    qc.append(el('div',{style:{fontSize:'14px',fontWeight:'600',marginBottom:'12px',lineHeight:'1.5',color:'var(--text)'}},'Q'+(i+1)+'. '+q.q));
+    q.options.forEach((o,j)=>{
+      const pk=mAns[i]===j;
+      const od=el('div',{style:{fontSize:'13px',padding:'10px 13px',borderRadius:'10px',marginBottom:'7px',cursor:'pointer',background:pk?mSel.color+'22':'var(--bg3)',border:'1.5px solid '+(pk?mSel.color:'#1e1e3a'),color:pk?mSel.color:'var(--text)',transition:'all .15s',fontWeight:pk?'600':'400'}});
+      od.textContent=['A','B','C','D'][j]+'. '+o;
+      od.addEventListener('click',()=>{mAns[i]=j;render()});
+      qc.append(od);
+    });
+    pg.append(qc);
+  });
+  const sb=btn('Submit Test',mSel.color,false,()=>{
+    if(Object.keys(mAns).length<mSel.questions.length&&!confirm('Not all answered. Submit?'))return;
+    let correct=0,wrong=0;
+    mSel.questions.forEach((q,i)=>{if(mAns[i]!==undefined){if(mAns[i]===q.answer)correct++;else wrong++;}});
+    const sc={correct,wrong,skipped:mSel.questions.length-correct-wrong,total:mSel.questions.length};
+    DB.mockScores[mSel.id]=sc;sDB(CID,DB);mDone=true;render();
+  },true);
+  sb.style.marginTop='4px';pg.append(sb);
+}
+
+function renderMockResult(pg){
+  const score=DB.mockScores[mSel.id];
+  const bb=btn('← Back to Tests','#64748b',true,()=>{mSel=null;mDone=false;render()});bb.style.marginBottom='12px';pg.append(bb);
+  const marked=score.correct*2-score.wrong*0.5;const p2=Math.round(score.correct/score.total*100);
+  const rc=el('div',{cls:'card',style:{borderColor:mSel.color+'30'}});
+  rc.append(el('div',{cls:'h3',style:{color:mSel.color,marginBottom:'12px'}},'Result: '+mSel.title));
+  const rg=el('div',{cls:'grid2',style:{marginBottom:'14px',gap:'8px'}});
+  [['✅ Correct',score.correct,'#22c55e'],['❌ Wrong',score.wrong,'#e63946'],['⏭ Skipped',score.skipped,'#94a3b8'],['Score',marked.toFixed(1)+'/'+score.total*2,mSel.color]].forEach(([l,v,c2])=>rg.append(sbox(c2,l,v,'')));
+  rc.append(rg);rc.append(bar(p2,p2>=70?'#22c55e':p2>=50?'#f97316':'#e63946',8));
+  rc.append(el('div',{cls:'caption',style:{textAlign:'center',marginTop:'6px',marginBottom:'14px'}},p2+'% accuracy'));
+  pg.append(rc);
+  // answers
+  mSel.questions.forEach((q,i)=>{
+    const ua=mAns[i];const corr=ua===q.answer;const skip=ua===undefined;
+    const qc=el('div',{cls:'card',style:{borderColor:(skip?'#64748b':corr?'#22c55e':'#e63946')+'30',marginBottom:'8px'}});
+    const ql=el('div',{style:{display:'flex',gap:'8px',marginBottom:'8px',alignItems:'flex-start'}});
+    ql.append(el('span',{style:{fontSize:'13px',flexShrink:'0',color:skip?'#64748b':corr?'#22c55e':'#e63946',fontWeight:'700'}},(corr?'✓':skip?'−':'✗')));
+    ql.append(el('span',{style:{fontSize:'13px',fontWeight:'600',lineHeight:'1.5'}},'Q'+(i+1)+'. '+q.q));
+    qc.append(ql);
+    q.options.forEach((o,j)=>{
+      const od=el('div',{style:{fontSize:'12px',padding:'5px 9px',borderRadius:'7px',marginBottom:'4px',background:j===q.answer?'#22c55e20':(ua===j&&!corr)?'#e6394620':'transparent',color:j===q.answer?'#22c55e':(ua===j&&!corr)?'#e63946':'#94a3b8',border:'1px solid '+(j===q.answer?'#22c55e30':'transparent')}});
+      od.textContent=['A','B','C','D'][j]+'. '+o+(j===q.answer?' ✓':(ua===j&&!corr)?' ✗':'');
+      qc.append(od);
+    });
+    pg.append(qc);
+  });
+}
+
+// External mock
+function renderExtSection(pg){
+  const tabs=el('div',{style:{display:'flex',gap:'8px',marginBottom:'12px'}});
+  [['list','📋 My Tests'],['add','➕ Add']].forEach(([v,lbl])=>{
+    tabs.append(btn(lbl,extView===v?'#f97316':'#64748b',extView!==v,()=>{extView=v;render()}));
+  });
+  pg.append(tabs);
+  extView==='list'?renderExtList(pg):renderExtAdd(pg);
+}
+
+function renderExtList(pg){
+  if(!DB.extMocks?.length){
+    const ec=el('div',{cls:'card',style:{textAlign:'center',padding:'28px',borderColor:'var(--border)'}});
+    ec.append(el('div',{style:{fontSize:'40px',marginBottom:'10px'}},'📝'));
+    ec.append(el('div',{cls:'h3',style:{color:'var(--text3)',marginBottom:'6px'}},'No mocks logged yet'));
+    ec.append(el('div',{cls:'caption',style:{marginBottom:'14px'}},'Add your external mock test scores to track progress'));
+    ec.append(btn('+ Add Mock Score','#f97316',false,()=>{extView='add';render()},true));
+    pg.append(ec);return;
+  }
+  [...DB.extMocks].reverse().forEach((m,ri)=>{
+    const i=DB.extMocks.length-1-ri;
+    const p2=m.maxMarks>0?Math.round((m.obtained||0)/m.maxMarks*100):0;
+    const col=p2>=70?'#22c55e':p2>=50?'#f97316':'#e63946';
+    const card=el('div',{cls:'card',style:{borderColor:col+'25'}});
+    const top=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}});
+    const tl=el('div');
+    tl.append(el('div',{cls:'h3',style:{color:'var(--text)',marginBottom:'2px'}},m.name));
+    tl.append(el('div',{cls:'caption'},new Date(m.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})));
+    top.append(tl);
+    const tr=el('div',{style:{textAlign:'right'}});
+    tr.append(el('div',{style:{fontSize:'22px',fontWeight:'900',color:col}},(m.obtained||0)+'/'+m.maxMarks));
+    tr.append(el('div',{cls:'caption',style:{color:col}},p2+'%'));
+    top.append(tr);card.append(top);card.append(bar(p2,col,6));
+    if(m.subjects){
+      const sb=el('div',{style:{marginTop:'8px'}});
+      Object.entries(m.subjects).filter(([,sd])=>sd.max>0).forEach(([subj,sd])=>{
+        const sp=Math.round((sd.obtained||0)/sd.max*100);
+        const sc3=sp>=70?'#22c55e':sp>=50?'#f97316':'#e63946';
+        const r=el('div',{style:{display:'flex',justifyContent:'space-between',padding:'3px 0'}});
+        r.append(el('span',{cls:'caption'},subj));
+        r.append(el('span',{style:{fontSize:'11px',fontWeight:'700',color:sc3}},sd.obtained+'/'+sd.max+' ('+sp+'%)'));
+        sb.append(r);
+      });
+      card.append(sb);
+    }
+    const acts=el('div',{style:{display:'flex',gap:'6px',marginTop:'10px'}});
+    acts.append(btn('🗑','#e63946',true,()=>{if(confirm('Delete?')){DB.extMocks.splice(i,1);sDB(CID,DB);render();}}));
+    card.append(acts);pg.append(card);
+  });
+}
+
+function renderExtAdd(pg){
+  const def=EDATA[CID];const c=def.color;
+  pg.append(el('div',{cls:'h3',style:{color:c,marginBottom:'14px'}},'➕ Add External Mock'));
+  const form=el('div',{cls:'card',style:{borderColor:c+'25'}});
+  form.append(el('div',{cls:'input-label'},'Mock Test Name *'));
+  const nameIn=el('input',{type:'text',placeholder:'e.g. Pinnacle Mock 3, Full Test 1'});form.append(nameIn);
+  form.append(el('div',{cls:'input-label',style:{marginTop:'10px'}},'Date'));
+  const dateIn=el('input',{type:'date'});dateIn.value=tdKey();form.append(dateIn);
+  form.append(el('div',{cls:'input-label',style:{marginTop:'10px'}},'Mode'));
+  let mode='full';
+  const mRow=el('div',{style:{display:'flex',gap:'8px',marginBottom:'12px'}});
+  const fb=el('button',{style:{flex:'1',padding:'9px',borderRadius:'10px',fontSize:'12px',fontWeight:'700',cursor:'pointer',border:'1px solid #4361ee',background:'#4361ee',color:'#fff',transition:'all .15s'}},'Full Total');
+  const sb2=el('button',{style:{flex:'1',padding:'9px',borderRadius:'10px',fontSize:'12px',fontWeight:'700',cursor:'pointer',border:'1px solid #a855f7',background:'#a855f722',color:'#a855f7',transition:'all .15s'}},'Subject-wise');
+  mRow.append(fb,sb2);form.append(mRow);
+  const fullF=el('div');
+  const fg=el('div',{cls:'grid2',style:{gap:'8px'}});
+  const oWrap=el('div');oWrap.append(el('div',{cls:'input-label'},'Marks obtained'));const oIn=el('input',{type:'number',placeholder:'e.g. 145'});oWrap.append(oIn);
+  const mWrap=el('div');mWrap.append(el('div',{cls:'input-label'},'Total marks'));const mIn=el('input',{type:'number',placeholder:'e.g. 200'});mWrap.append(mIn);
+  fg.append(oWrap,mWrap);fullF.append(fg);form.append(fullF);
+  const SUBJS=['Reasoning','Quantitative Aptitude','English','General Awareness','Computer Knowledge'];
+  const SCOLS=['#e63946','#e9c46a','#457b9d','#2a9d8f','#f4a261'];
+  const subjF=el('div',{style:{display:'none'}});
+  const subjInputs={};
+  SUBJS.forEach((subj,si)=>{
+    const sr=el('div',{style:{marginBottom:'10px'}});
+    sr.append(el('div',{cls:'input-label',style:{color:SCOLS[si]}},subj));
+    const sg2=el('div',{cls:'grid2',style:{gap:'8px'}});
+    const oi=el('input',{type:'number',placeholder:'Obtained'});
+    const mi=el('input',{type:'number',placeholder:'Max (0=skip)'});
+    const ol3=el('div');ol3.append(el('div',{cls:'input-label'},'Obtained'));ol3.append(oi);
+    const ml3=el('div');ml3.append(el('div',{cls:'input-label'},'Max'));ml3.append(mi);
+    sg2.append(ol3,ml3);sr.append(sg2);subjF.append(sr);
+    subjInputs[subj]={o:oi,m:mi};
+  });
+  form.append(subjF);
+  fb.addEventListener('click',()=>{mode='full';fullF.style.display='block';subjF.style.display='none';fb.style.background='#4361ee';fb.style.color='#fff';sb2.style.background='#a855f722';sb2.style.color='#a855f7'});
+  sb2.addEventListener('click',()=>{mode='subject';subjF.style.display='block';fullF.style.display='none';sb2.style.background='#a855f7';sb2.style.color='#fff';fb.style.background='#4361ee22';fb.style.color='#4361ee'});
+  const saveB=btn('Save Mock','#22c55e',false,()=>{
+    const name=nameIn.value.trim();if(!name){toast('Enter a name');return;}
+    const entry={name,date:dateIn.value||tdKey()};
+    if(mode==='full'){
+      const o=parseFloat(oIn.value),mx=parseFloat(mIn.value);
+      if(isNaN(o)||isNaN(mx)||mx<=0){toast('Enter valid marks');return;}
+      entry.obtained=o;entry.maxMarks=mx;
+    }else{
+      const subjects={};
+      SUBJS.forEach(subj=>{subjects[subj]={obtained:parseFloat(subjInputs[subj].o.value)||0,max:parseFloat(subjInputs[subj].m.value)||0}});
+      const totMax=Object.values(subjects).reduce((a,s)=>a+s.max,0);
+      if(totMax<=0){toast('Enter at least one subject marks');return;}
+      entry.subjects=subjects;entry.obtained=Object.values(subjects).reduce((a,s)=>a+(s.obtained||0),0);entry.maxMarks=totMax;
+    }
+    if(!DB.extMocks)DB.extMocks=[];DB.extMocks.push(entry);sDB(CID,DB);
+    extView='list';render();toast('✅ Mock saved!');
+  },true);saveB.style.marginTop='14px';form.append(saveB);pg.append(form);
+}
+
+function renderMockAnalysis(pg){
+  if(!DB.extMocks?.length){pg.append(el('div',{cls:'card',style:{textAlign:'center',padding:'24px',color:'var(--text3)',borderColor:'var(--border)'}},'Add mock tests to see analysis'));return;}
+  const mocks=DB.extMocks.filter(m=>(m.maxMarks||0)>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!mocks.length)return;
+  const scores=mocks.map(m=>({name:m.name,date:m.date,p:Math.round((m.obtained||0)/(m.maxMarks||1)*100)}));
+  const avg=Math.round(scores.reduce((a,s)=>a+s.p,0)/scores.length);
+  const best=scores.reduce((a,s)=>s.p>a.p?s:a,scores[0]);
+  const trend=scores.length>1?scores[scores.length-1].p-scores[0].p:0;
+  const tc=trend>0?'#22c55e':trend<0?'#e63946':'#f97316';
+
+  const oc=el('div',{cls:'card',style:{borderColor:'var(--border)',marginBottom:'12px'}});
+  oc.append(el('div',{cls:'h3',style:{color:'var(--text2)',marginBottom:'10px'}},'Overall Performance'));
+  const og=el('div',{cls:'grid2',style:{marginBottom:'12px',gap:'8px'}});
+  og.append(sbox('#4361ee','Attempts',mocks.length,'mocks'));
+  og.append(sbox(tc,'Trend',(trend>=0?'+':'')+trend+'%',trend>0?'Improving ✅':'Dropping ⚠️'));
+  og.append(sbox('#f59e0b','Best',best.p+'%',best.name.slice(0,12)));
+  og.append(sbox('#a855f7','Average',avg+'%','all mocks'));
+  oc.append(og);
+  oc.append(el('div',{cls:'caption',style:{marginBottom:'8px'}},'Score timeline:'));
+  scores.forEach(sc2=>{
+    const col=sc2.p>=70?'#22c55e':sc2.p>=50?'#f97316':'#e63946';
+    const r=el('div',{style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'6px'}});
+    r.append(el('span',{cls:'caption',style:{flexShrink:'0',minWidth:'44px'}},new Date(sc2.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})));
+    r.append(el('div',{style:{flex:'1'}},[bar(sc2.p,col,6)]));
+    r.append(el('span',{style:{fontSize:'12px',fontWeight:'700',color:col,flexShrink:'0',minWidth:'32px',textAlign:'right'}},sc2.p+'%'));
+    oc.append(r);
+  });
+  pg.append(oc);
+
+  const hasSub=mocks.some(m=>m.subjects);
+  if(hasSub){
+    const SUBJS=['Reasoning','Quantitative Aptitude','English','General Awareness','Computer Knowledge'];
+    const sc3=el('div',{cls:'card',style:{borderColor:'#e6394625',marginBottom:'12px'}});
+    sc3.append(el('div',{cls:'h3',style:{color:'#e63946',marginBottom:'10px'}},'Subject-wise Analysis'));
+    const subMocks=mocks.filter(m=>m.subjects);
+    const subAvgs=[];
+    SUBJS.forEach(subj=>{
+      const rel=subMocks.filter(m=>m.subjects[subj]?.max>0);
+      if(!rel.length)return;
+      const ap=Math.round(rel.reduce((a,m)=>a+Math.round((m.subjects[subj].obtained||0)/m.subjects[subj].max*100),0)/rel.length);
+      subAvgs.push({subj,ap});
+      const sc4=ap>=70?'#22c55e':ap>=50?'#f97316':'#e63946';
+      const sr=el('div',{style:{marginBottom:'10px'}});
+      const rh=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}});
+      rh.append(el('span',{cls:'body'},subj));
+      rh.append(el('span',{style:{fontSize:'13px',fontWeight:'700',color:sc4}},ap+'% '+(ap>=70?'✅':ap>=50?'⚡':'🚨')));
+      sr.append(rh);sr.append(bar(ap,sc4,6));sc3.append(sr);
+    });
+    if(subAvgs.length>0){
+      const weakest=subAvgs.sort((a,b)=>a.ap-b.ap)[0];
+      const wBox=el('div',{style:{background:'#e6394612',border:'1px solid #e6394625',borderRadius:'10px',padding:'12px',marginTop:'8px'}});
+      wBox.append(el('div',{style:{fontSize:'12px',fontWeight:'700',color:'#e63946',marginBottom:'4px'}},'📉 Weakest Subject'));
+      wBox.append(el('div',{cls:'body',style:{color:'#fca5a5'}},'"'+weakest.subj+'" (avg '+weakest.ap+'%) — spend more time here before next mock'));
+      sc3.append(wBox);
+    }
+    pg.append(sc3);
+  }
+}
+
+// ══════════════════════════════════════════════
+// MORE TAB — tracker, guide, notes, planner
+// ══════════════════════════════════════════════
+function renderMore(s){
+  const def=EDATA[CID];const c=def.color;
+  const cont=el('div',{style:{padding:'16px'}});
+
+  // Header with theme toggle
+  const hdrRow=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}});
+  hdrRow.append(el('div',{cls:'h2'},'☰ More'));
+  const themeBtn=el('button',{style:{display:'flex',alignItems:'center',gap:'6px',padding:'8px 14px',borderRadius:'20px',border:'1px solid var(--border2)',background:'var(--bg2)',color:'var(--text2)',fontSize:'12px',fontWeight:'600',cursor:'pointer',transition:'all .2s'}});
+  themeBtn.append(el('span',{style:{fontSize:'16px'}},DARK_MODE?'☀️':'🌙'));
+  themeBtn.append(el('span',null,DARK_MODE?'Light Mode':'Dark Mode'));
+  themeBtn.addEventListener('click',toggleTheme);
+  hdrRow.append(themeBtn);cont.append(hdrRow);
+
+  const items=[
+    {icon:'✅',label:'Syllabus Tracker',desc:'Tick topics · mark Easy/Medium/Hard · add notes',color:'#22c55e',action:()=>showTracker()},
+    {icon:'📝',label:'Topic Notes',desc:'Write key formulas and points per topic',color:'#f59e0b',action:()=>showNotes()},
+    {icon:'📅',label:'Study Planner',desc:'Day-by-day plan based on remaining topics',color:'#a855f7',action:()=>showPlanner()},
+    {icon:'📖',label:'Study Guide & Strategy',desc:'Exam pattern · expert tips',color:'#4361ee',action:()=>showGuide()},
+    {icon:'🔄',label:'Revision Due',desc:'Topics you studied 15+ days ago needing re-read',color:'#f97316',action:()=>showRevisionDue()},
+    {icon:'📊',label:'Subject Time Split',desc:'See which subjects you are spending time on',color:'#2a9d8f',action:()=>showSubjectTime()},
+    {icon:'📉',label:'Weak Topic Analysis',desc:'Subjects where your mock scores are below 60%',color:'#e63946',action:()=>showWeakAnalysis()},
+    {icon:'🏠',label:'Change Exam',desc:'Switch to a different exam',color:'#64748b',action:goHub},
+  ];
+  items.forEach(item=>{
+    const card=el('div',{cls:'card',style:{borderColor:item.color+'25',cursor:'pointer',display:'flex',gap:'12px',alignItems:'center',marginBottom:'8px'}});
+    card.addEventListener('click',item.action);
+    const ic=el('div',{style:{width:'46px',height:'46px',borderRadius:'13px',background:item.color+'15',border:`1px solid ${item.color}25`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:'0'}},item.icon);
+    card.append(ic);
+    const info=el('div',{style:{flex:'1'}});
+    info.append(el('div',{cls:'h3',style:{color:item.color,marginBottom:'2px'}},item.label));
+    info.append(el('div',{cls:'caption'},item.desc));
+    card.append(info,el('div',{style:{color:'var(--text3)',fontSize:'18px'}},'›'));
+    cont.append(card);
+  });
+  cont.append(el('div',{style:{textAlign:'center',padding:'16px 0',color:'var(--text3)',fontSize:'11px'}},'Exam Prep Hub · All data stored on your device'));
+  s.append(cont);
+}
+
+// ── TRACKER ──
+function showTracker(){
+  const def=EDATA[CID];const cont=el('div');
+  cont.append(el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}),[
+    el('div',{cls:'h2'},'✅ Syllabus Tracker'),
+    el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×')
+  ]);
+  // tier tabs
+  const tierKeys=Object.keys(def.syllabus);
+  const tabRow=el('div',{style:{display:'flex',gap:'8px',marginBottom:'14px',flexWrap:'wrap'}});
+  tierKeys.forEach(tk=>{
+    const tier=def.syllabus[tk];
+    const b=btn(tk,tier.color,trackerTier!==tk,()=>{trackerTier=tk;trackerSec=null;document.querySelector('.modal-overlay').remove();showTracker()});
+    if(trackerTier===tk)b.style.fontWeight='800';
+    tabRow.append(b);
+  });
+  cont.append(tabRow);
+  const tier=def.syllabus[trackerTier]||def.syllabus[tierKeys[0]];
+  if(!tier){cont.append(el('div',{cls:'caption'},'No syllabus data'));modal(cont);return;}
+  if(!trackerSec){
+    Object.entries(tier.sections).forEach(([sk,sec])=>{
+      const sd=sec.topics.filter(t=>DB.progress[sk+'||'+t]).length;
+      const sp=pct(sd,sec.topics.length);
+      const card=el('div',{cls:'card',style:{borderColor:sec.color+'25',cursor:'pointer',marginBottom:'8px'}});
+      card.addEventListener('click',()=>{trackerSec=sk;document.querySelector('.modal-overlay').remove();showTracker()});
+      const rh=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}});
+      rh.append(el('div',{cls:'h3',style:{color:sec.color}},sk));
+      rh.append(el('div',{style:{display:'flex',alignItems:'center',gap:'8px'}}),[
+        el('span',{cls:'caption'},sd+'/'+sec.topics.length),
+        el('span',{cls:'caption',style:{color:sp===100?'#22c55e':sec.color}},sp===100?'Done ✅':sp+'%'),
+        el('span',{style:{color:'#4a5568'}},'›')
+      ]);
+      card.append(rh);card.append(bar(sp,sec.color,5));
+      cont.append(card);
+    });
+  }else{
+    const sec=tier.sections[trackerSec];
+    const backR=el('div',{style:{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px',cursor:'pointer'}});
+    backR.addEventListener('click',()=>{trackerSec=null;document.querySelector('.modal-overlay').remove();showTracker()});
+    backR.append(el('span',{style:{color:'#4361ee',fontSize:'16px'}},'←'));
+    backR.append(el('div',{cls:'h3',style:{color:sec.color}},trackerSec));
+    cont.append(backR);
+    const allBtn=el('div',{style:{display:'flex',gap:'8px',marginBottom:'10px'}});
+    allBtn.append(btn('✓ Mark All','#22c55e',false,()=>{sec.topics.forEach(t=>{DB.progress[trackerSec+'||'+t]=true;DB.revisionDue[trackerSec+'||'+t]=tdKey()});sDB(CID,DB);document.querySelector('.modal-overlay').remove();showTracker()}));
+    allBtn.append(btn('✗ Clear All','#e63946',true,()=>{sec.topics.forEach(t=>{delete DB.progress[trackerSec+'||'+t];delete DB.revisionDue[trackerSec+'||'+t]});sDB(CID,DB);document.querySelector('.modal-overlay').remove();showTracker()}));
+    cont.append(allBtn);
+    sec.topics.forEach(topic=>{
+      const key=trackerSec+'||'+topic;const done=!!DB.progress[key];
+      const diff=DB.difficulty[key]||'';
+      const row=el('div',{cls:'topic-row'+(done?' done':'')});
+      const cb=el('div',{cls:'chk'+(done?' done':''),style:{'--c':sec.color}});
+      if(done)cb.appendChild(chkSVG());
+      row.append(cb);
+      const tInfo=el('div',{style:{flex:'1'}});
+      tInfo.append(el('span',{style:{fontSize:'13px',color:done?'#86efac':'#e2e8f0',textDecoration:done?'line-through':'none'}},topic));
+      // difficulty chips
+      if(done){
+        const dc=el('div',{style:{display:'flex',gap:'4px',marginTop:'4px'}});
+        [['Easy','#22c55e'],['Medium','#f97316'],['Hard','#e63946']].forEach(([d3,col])=>{
+          const c2=el('button',{cls:'diff-chip',style:{background:diff===d3?col:col+'15',color:diff===d3?'#fff':col,border:`1px solid ${col}`,fontSize:'10px',padding:'2px 7px',borderRadius:'6px',cursor:'pointer'}},d3);
+          c2.addEventListener('click',(e)=>{e.stopPropagation();DB.difficulty[key]=d3;sDB(CID,DB);document.querySelector('.modal-overlay').remove();showTracker()});
+          dc.append(c2);
+        });
+        tInfo.append(dc);
+      }
+      row.append(tInfo);
+      // note icon
+      const nb=el('button',{style:{background:'transparent',border:'none',color:DB.notes[key]?'#f59e0b':'var(--border2)',fontSize:'16px',cursor:'pointer',padding:'4px',flexShrink:'0'}},'📝');
+      nb.addEventListener('click',(e)=>{e.stopPropagation();document.querySelector('.modal-overlay').remove();showTopicNote(key,topic)});
+      row.append(nb);
+      row.addEventListener('click',()=>{
+        if(done){delete DB.progress[key];delete DB.revisionDue[key];}
+        else{DB.progress[key]=true;DB.revisionDue[key]=tdKey();}
+        sDB(CID,DB);document.querySelector('.modal-overlay').remove();showTracker();
+      });
+      cont.append(row);
+    });
+  }
+  modal(cont);
+}
+
+// ── TOPIC NOTES ──
+function showNotes(){
+  const def=EDATA[CID];const cont=el('div');
+  cont.append(el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}),[
+    el('div',{cls:'h2'},'📝 Topic Notes'),
+    el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×')
+  ]);
+  const notedTopics=Object.entries(DB.notes||{}).filter(([,v])=>v);
+  if(!notedTopics.length){
+    cont.append(el('div',{style:{textAlign:'center',padding:'20px'}},[
+      el('div',{style:{fontSize:'36px',marginBottom:'8px'}},'📝'),
+      el('div',{cls:'body muted',style:{marginBottom:'8px'}},'No notes yet'),
+      el('div',{cls:'caption'},'Tap the 📝 icon next to any topic in the Tracker to add notes')
+    ]));
+  }else{
+    notedTopics.forEach(([key,note])=>{
+      const parts=key.split('||');const topic=parts[parts.length-1];
+      const card=el('div',{cls:'card',style:{borderColor:'#f59e0b25',cursor:'pointer',marginBottom:'8px'}});
+      card.addEventListener('click',()=>{document.querySelector('.modal-overlay').remove();showTopicNote(key,topic)});
+      card.append(el('div',{cls:'h3',style:{color:'#f59e0b',marginBottom:'4px'}},topic));
+      card.append(el('div',{cls:'body muted',style:{display:'-webkit-box',WebkitLineClamp:'2',WebkitBoxOrient:'vertical',overflow:'hidden'}},note));
+      cont.append(card);
+    });
+  }
+  modal(cont);
+}
+
+function showTopicNote(key,topic){
+  const cont=el('div');
+  cont.append(el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}),[
+    el('div',{cls:'h3',style:{color:'#f59e0b'}},topic),
+    el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×')
+  ]);
+  cont.append(el('div',{cls:'input-label',style:{marginBottom:'6px'}},'Your notes for this topic:'));
+  const ta=el('textarea',{rows:'8',placeholder:'Write key points, formulas, mnemonics...\n\nExample:\n• sin 30° = 1/2\n• cos 60° = 1/2\n• Remember: CAST rule for quadrants'});
+  ta.value=DB.notes[key]||'';cont.append(ta);
+  const saveB=btn('Save Note','#f59e0b',false,()=>{
+    if(!DB.notes)DB.notes={};
+    DB.notes[key]=ta.value.trim();sDB(CID,DB);
+    document.querySelector('.modal-overlay')?.remove();
+    toast('📝 Note saved!');
+  },true);saveB.style.marginTop='12px';cont.append(saveB);
+  if(DB.notes[key]){
+    const delB=btn('Delete Note','#e63946',true,()=>{delete DB.notes[key];sDB(CID,DB);document.querySelector('.modal-overlay')?.remove();toast('Note deleted')});
+    delB.style.marginTop='8px';cont.append(delB);
+  }
+  modal(cont);
+}
+
+// ── GUIDE ──
+function showGuide(){
+  const def=EDATA[CID];const c=def.color;const cont=el('div');
+  let gTab='strategy';
+  function buildGuide(){
+    cont.innerHTML='';
+    cont.append(el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}),[
+      el('div',{cls:'h2'},'📖 Study Guide'),
+      el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×')
+    ]);
+    const tabs=el('div',{style:{display:'flex',gap:'8px',marginBottom:'14px'}});
+    [['strategy','💡 Strategy'],['info','📋 Exam Info']].forEach(([v,lbl])=>{
+      const b=btn(lbl,gTab===v?c:'#64748b',gTab!==v,()=>{gTab=v;buildGuide()});tabs.append(b);
+    });
+    cont.append(tabs);
+    if(gTab==='strategy'){
+      const sc=el('div',{cls:'card',style:{borderColor:c+'25'}});
+      (def.strategy||[]).forEach((s2,i)=>{
+        const r=el('div',{style:{display:'flex',gap:'10px',padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:'13px',lineHeight:'1.5'}});
+        r.append(el('span',{style:{color:c,fontWeight:'800',flexShrink:'0',minWidth:'20px'}},(i+1)+'.'));
+        r.append(el('span',null,s2));sc.append(r);
+      });
+      cont.append(sc);
+    }else{
+      const ic=el('div',{cls:'card',style:{borderColor:c+'25'}});
+      Object.entries(def.info).forEach(([k,v])=>{
+        const r=el('div',{style:{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border)'}});
+        r.append(el('span',{cls:'caption',style:{textTransform:'capitalize'}},k));
+        r.append(el('span',{cls:'body',style:{fontWeight:'600',color:'var(--text)',textAlign:'right',maxWidth:'60%'}},v));
+        ic.append(r);
+      });
+      cont.append(ic);
+    }
+  }
+  buildGuide();modal(cont);
+}
+
+// ── STUDY PLANNER ──
+function showPlanner(){
+  const def=EDATA[CID];const c=def.color;const cont=el('div');
+  cont.append(el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}),[
+    el('div',{cls:'h2'},'📅 Study Planner'),
+    el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×')
+  ]);
+  const dl=TM.examDate?Math.max(0,Math.ceil((new Date(TM.examDate)-new Date(new Date().toDateString()))/86400000)):null;
+  const target=TM.targetHrs||6;
+  if(!dl){
+    cont.append(el('div',{style:{textAlign:'center',padding:'20px'}},[
+      el('div',{style:{fontSize:'36px',marginBottom:'8px'}},'📅'),
+      el('div',{cls:'body muted',style:{marginBottom:'12px'}},'Set your exam date first'),
+      btn('Set Exam Date','#4361ee',false,()=>{document.querySelector('.modal-overlay')?.remove();setTab('study')},true)
+    ]));
+    modal(cont);return;
+  }
+  // get remaining topics by section
+  const pendingBySec=[];
+  Object.entries(def.syllabus).forEach(([tierKey,tier])=>{
+    Object.entries(tier.sections).forEach(([sk,sec])=>{
+      const pending=sec.topics.filter(t=>!DB.progress[sk+'||'+t]);
+      if(pending.length>0)pendingBySec.push({tierKey,sk,sec,pending,color:sec.color});
+    });
+  });
+  const totalPending=pendingBySec.reduce((a,s)=>a+s.pending.length,0);
+  const info=el('div',{cls:'card-sm',style:{borderColor:c+'25',marginBottom:'14px',display:'flex',gap:'10px',alignItems:'center'}});
+  info.append(el('div',{style:{flex:'1'}},[
+    el('div',{cls:'body',style:{color:'var(--text)',marginBottom:'2px'}},dl+' days left · '+totalPending+' topics pending'),
+    el('div',{cls:'caption'},'Daily target: '+target+'h · Approx '+Math.ceil(target/2)+' topics/day')
+  ]));
+  cont.append(info);
+  // generate plan: group topics into days
+  const topicsPerDay=Math.max(1,Math.ceil(target/3));
+  const allPending=pendingBySec.flatMap(s=>s.pending.map(t=>({topic:t,section:s.sk,color:s.color,hrs:Math.round(tHrs(t,CID)*((ETC[CID]?.tiers[0]?.r)||1)*10)/10})));
+  const days=[];let dayTopics=[],dayHrs=0,dayIdx=0;
+  allPending.forEach(t=>{
+    dayTopics.push(t);dayHrs+=t.hrs;
+    if(dayHrs>=target||dayTopics.length>=topicsPerDay){days.push({topics:[...dayTopics],hrs:dayHrs});dayTopics=[];dayHrs=0;dayIdx++;}
+  });
+  if(dayTopics.length>0)days.push({topics:dayTopics,hrs:dayHrs});
+  const totalPlanDays=days.length;
+  cont.append(el('div',{cls:'caption',style:{marginBottom:'10px'}},`Plan: ${totalPlanDays} days needed · Exam: ${dl} days away · ${dl>=totalPlanDays?'✅ Completable':'⚠️ Increase daily hours'}`));
+  // show today's plan
+  const todayPlan=days[planDay];
+  if(todayPlan){
+    const pc=el('div',{style:{display:'flex',gap:'8px',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}});
+    const prevB=btn('←','#64748b',true,()=>{if(planDay>0){planDay--;document.querySelector('.modal-overlay').remove();showPlanner();}});
+    prevB.disabled=planDay===0;
+    const nextB=btn('→','#64748b',true,()=>{if(planDay<days.length-1){planDay++;document.querySelector('.modal-overlay').remove();showPlanner();}});
+    nextB.disabled=planDay===days.length-1;
+    pc.append(prevB,el('div',{style:{textAlign:'center'}},[el('div',{cls:'h3',style:{color:c}},'Day '+(planDay+1)+' of '+totalPlanDays),el('div',{cls:'caption'},'~'+todayPlan.hrs.toFixed(1)+'h · '+todayPlan.topics.length+' topics')]),nextB);
+    cont.append(pc);
+    todayPlan.topics.forEach(t=>{
+      const r=el('div',{style:{display:'flex',gap:'10px',alignItems:'center',padding:'9px 12px',borderRadius:'10px',marginBottom:'6px',background:'var(--bg3)',border:`1px solid ${t.color}25`}});
+      const dot=el('div',{style:{width:'8px',height:'8px',borderRadius:'50%',background:t.color,flexShrink:'0'}});
+      r.append(dot,el('div',{style:{flex:'1'}},[
+        el('div',{cls:'body'},t.topic),
+        el('div',{cls:'caption'},t.section+' · ~'+t.hrs+'h')
+      ]));
+      cont.append(r);
+    });
+  }
+  modal(cont);
+}
+
+// ── FEATURE 2: REVISION DUE ──
+function showRevisionDue(){
+  const cont=el('div');
+  const closeBtn=el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×');
+  const hdr=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}});
+  hdr.append(el('div',{cls:'h2'},'🔄 Due for Revision'));hdr.append(closeBtn);cont.append(hdr);
+  const due=getDueRevision();
+  if(!due.length){
+    cont.append(el('div',{style:{textAlign:'center',padding:'24px'}},[
+      el('div',{style:{fontSize:'40px',marginBottom:'8px'}},'✅'),
+      el('div',{cls:'h3',style:{color:'#22c55e',marginBottom:'4px'}},'All good!'),
+      el('div',{cls:'caption'},'No topics are overdue for revision right now.')
+    ]));
+  }else{
+    cont.append(el('div',{cls:'caption',style:{marginBottom:'12px'}},due.length+' topics ticked 15+ days ago — time to revise!'));
+    due.forEach(t=>{
+      const row=el('div',{cls:'card-sm',style:{borderColor:'#f9741625',display:'flex',gap:'10px',alignItems:'center',marginBottom:'6px'}});
+      const dot=el('div',{style:{width:'8px',height:'8px',borderRadius:'50%',background:'#f97316',flexShrink:'0'}});
+      const info=el('div',{style:{flex:'1'}});
+      info.append(el('div',{cls:'body',style:{color:'var(--text)'}},t.topic));
+      info.append(el('div',{cls:'caption'},t.days+' days since last studied'));
+      const resetBtn=btn('↺ Reset','#f97316',true,()=>{
+        DB.revisionDue[t.key]=tdKey();sDB(CID,DB);
+        row.remove();toast('Reset — study it again today!');
+      });
+      row.append(dot,info,resetBtn);cont.append(row);
+    });
+  }
+  modal(cont);
+}
+
+// ── FEATURE 7: SUBJECT TIME SPLIT ──
+function showSubjectTime(){
+  const cont=el('div');
+  const closeBtn=el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×');
+  const hdr=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}});
+  hdr.append(el('div',{cls:'h2'},'📊 Subject Time Split'));hdr.append(closeBtn);cont.append(hdr);
+  const st=DB.subjectTime||{};
+  const entries=Object.entries(st).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){
+    cont.append(el('div',{style:{textAlign:'center',padding:'24px'}},[
+      el('div',{style:{fontSize:'40px',marginBottom:'8px'}},'📊'),
+      el('div',{cls:'body muted',style:{marginBottom:'6px'}},'No subject-wise data yet'),
+      el('div',{cls:'caption'},'When logging hours in ⏱ Study tab, select a subject to track time per subject')
+    ]));
+  }else{
+    const total=entries.reduce((a,[,v])=>a+v,0);
+    cont.append(el('div',{cls:'caption',style:{marginBottom:'12px'}},'Total logged: '+fHM(total)));
+    const COLORS=['#4361ee','#e63946','#457b9d','#2a9d8f','#f4a261','#a855f7','#e9c46a','#059669','#db2777','#dc2626'];
+    entries.forEach(([subj,hrs],i)=>{
+      const p2=Math.round(hrs/total*100);const col=COLORS[i%COLORS.length];
+      const r=el('div',{style:{marginBottom:'10px'}});
+      const rh=el('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:'4px'}});
+      rh.append(el('span',{cls:'body'},subj));
+      rh.append(el('span',{style:{fontSize:'12px',fontWeight:'700',color:col}},fHM(hrs)+' ('+p2+'%)'));
+      r.append(rh);r.append(el('div',{cls:'bar-track',style:{height:'7px'}},[el('div',{cls:'bar-fill',style:{width:p2+'%',background:col,height:'100%'}})]));
+      cont.append(r);
+    });
+    const clrBtn=btn('Clear All Data','#e63946',true,()=>{if(confirm('Clear subject time data?')){DB.subjectTime={};sDB(CID,DB);document.querySelector('.modal-overlay')?.remove();toast('Cleared');}});
+    clrBtn.style.marginTop='12px';cont.append(clrBtn);
+  }
+  modal(cont);
+}
+
+// ── FEATURE 2: WEAK TOPIC ANALYSIS ──
+function showWeakAnalysis(){
+  const cont=el('div');
+  const closeBtn=el('button',{cls:'btn-icon',style:{fontSize:'16px'},'$click':()=>document.querySelector('.modal-overlay')?.remove()},'×');
+  const hdr=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}});
+  hdr.append(el('div',{cls:'h2'},'📉 Weak Topic Analysis'));hdr.append(closeBtn);cont.append(hdr);
+  const weak=getWeakTopics();
+  if(!weak.length){
+    cont.append(el('div',{style:{textAlign:'center',padding:'24px'}},[
+      el('div',{style:{fontSize:'40px',marginBottom:'8px'}},'🎉'),
+      el('div',{cls:'h3',style:{color:'#22c55e',marginBottom:'4px'}},'No weak areas found!'),
+      el('div',{cls:'caption'},'Add subject-wise mock scores to see which subjects need more focus')
+    ]));
+  }else{
+    cont.append(el('div',{cls:'caption',style:{marginBottom:'12px'}},'Subjects averaging below 60% in your mock tests:'));
+    weak.forEach(w=>{
+      const col=w.avg<40?'#e63946':'#f97316';
+      const card=el('div',{cls:'card-sm',style:{borderColor:col+'25',marginBottom:'8px'}});
+      const rh=el('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px'}});
+      rh.append(el('div',{cls:'h3',style:{color:col}},w.subject));
+      rh.append(el('div',{style:{fontSize:'18px',fontWeight:'900',color:col}},w.avg+'%'));
+      card.append(rh);
+      card.append(el('div',{cls:'bar-track',style:{height:'6px',marginBottom:'6px'}},[el('div',{cls:'bar-fill',style:{width:w.avg+'%',background:col,height:'100%'}})]));
+      const tip=w.avg<40?'🚨 Critical — needs immediate focus':'⚡ Moderate — spend extra time here';
+      card.append(el('div',{cls:'caption',style:{color:col}},tip));
+      cont.append(card);
+    });
+    cont.append(el('div',{style:{background:'#4361ee12',border:'1px solid #4361ee25',borderRadius:'10px',padding:'12px',marginTop:'8px'}},[
+      el('div',{cls:'h3',style:{color:'#4361ee',marginBottom:'4px'}},'💡 Tip'),
+      el('div',{cls:'caption'},'Go to ✅ Tracker → find these subjects → mark topics as Hard → they will show up in your Study Planner with extra time allocated.')
+    ]));
+  }
+  modal(cont);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+// Check if user had a last exam open
+const lastExam=META.lastExam;
+if(lastExam&&EDATA[lastExam]){
+  openExam(lastExam);
+}else{
+  $('nav').style.display='none';
+  renderHub();
+}
+</script>
+</body>
+</html>
